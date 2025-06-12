@@ -57,12 +57,14 @@
     const spacing = 3; // 写真間の距離
     const startX = -((numPhotos - 1) / 2) * spacing;
 
-    for (let i = 0; i < numPhotos; i++) {
-      loader.load(`images/photo${i + 1}.jpg`, texture => {
-        const photo = new THREE.Mesh(
-          new THREE.PlaneGeometry(2.5, 2),
-          new THREE.MeshStandardMaterial({ map: texture })
-        );
+//    for (let i = 0; i < numPhotos; i++) {
+//      loader.load(`images/photo${i + 1}.jpg`, texture => {
+ //       const photo = new THREE.Mesh(
+  //        new THREE.PlaneGeometry(2.5, 2),
+  //        new THREE.MeshStandardMaterial({ map: texture })
+  //      );
+    loader.load('https://Sanadamaru01.github.io/Gallery/images/photo1.jpg', texture => { ... });
+
         photo.position.set(startX + i * spacing, 3, -9.9);
         scene.add(photo);
       });
