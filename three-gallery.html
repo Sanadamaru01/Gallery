@@ -1,38 +1,86 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>3D Box Sample</title>
+  <meta charset="UTF-8">
+  <title>3D Gallery</title>
   <style>
     body { margin: 0; overflow: hidden; }
     canvas { display: block; }
   </style>
 </head>
 <body>
+  <!-- three.js本体 -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <!-- カメラ操作 -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+
   <script>
+    // 基本セットアップ
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      75, window.innerWidth / window.innerHeight, 0.1, 1000
-    );
-    const renderer = new THREE.WebGLRenderer();
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 3, 15);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    const geometry = new THREE.BoxGeometry();
-    const material = new THREE.MeshNormalMaterial();
-    const cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 3, 0);
+    controls.update();
 
-    camera.position.z = 3;
+    // 光源
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(10, 10, 10);
+    scene.add(light);
+    scene.add(new THREE.AmbientLight(0x404040));
 
+    // 床
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(30, 30),
+      new THREE.MeshStandardMaterial({ color: 0xeeeeee })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    scene.add(floor);
+
+    // 背景壁
+    const backWall = new THREE.Mesh(
+      new THREE.PlaneGeometry(30, 10),
+      new THREE.MeshStandardMaterial({ color: 0xffffff })
+    );
+    backWall.position.z = -10;
+    backWall.position.y = 5;
+    scene.add(backWall);
+
+    // 写真を配置
+    const loader = new THREE.TextureLoader();
+    const numPhotos = 10;
+    const spacing = 3; // 写真間の距離
+    const startX = -((numPhotos - 1) / 2) * spacing;
+
+    for (let i = 0; i < numPhotos; i++) {
+      loader.load(`images/photo${i + 1}.jpg`, texture => {
+        const photo = new THREE.Mesh(
+          new THREE.PlaneGeometry(2.5, 2),
+          new THREE.MeshStandardMaterial({ map: texture })
+        );
+        photo.position.set(startX + i * spacing, 3, -9.9);
+        scene.add(photo);
+      });
+    }
+
+    // レンダリング
     function animate() {
       requestAnimationFrame(animate);
-      cube.rotation.x += 0.01;
-      cube.rotation.y += 0.01;
       renderer.render(scene, camera);
     }
     animate();
+
+    // ウィンドウリサイズ対応
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
   </script>
 </body>
 </html>
