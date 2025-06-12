@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>壁に色のあるギャラリー</title>
+  <title>操作できる3Dギャラリー</title>
   <style>
     body { margin: 0; overflow: hidden; }
     canvas { display: block; }
@@ -11,6 +11,7 @@
 <body>
   <script type="module">
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf8f8f8);
@@ -22,7 +23,13 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // 壁ごとに色を変えるマテリアル
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;         // なめらかな動き
+    controls.dampingFactor = 0.05;
+    controls.target.set(0, 1.2, 0);         // 視線の中心を少し上に
+    controls.update();
+
+    // 壁・床・天井の色分け
     const materials = [
       new THREE.MeshBasicMaterial({ color: 0xe0e0e0 }), // right
       new THREE.MeshBasicMaterial({ color: 0xe0e0e0 }), // left
@@ -44,6 +51,7 @@
 
     function animate() {
       requestAnimationFrame(animate);
+      controls.update();  // 必須！
       renderer.render(scene, camera);
     }
 
