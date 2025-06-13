@@ -30,8 +30,8 @@
     );
     camera.position.set(0, 2.5, 5); // 展示パネルの中心と同じ高さ
     camera.lookAt(0, 2.5, 0);       // 視線をギャラリーの中心へ
-    camera.zoom = 2; // 最大ズーム
-    camera.updateProjectionMatrix(); // ズーム反映
+    camera.zoom = 2;
+    camera.updateProjectionMatrix();
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -41,16 +41,16 @@
     controls.enableDamping = true;
     controls.enableZoom = false;
     controls.dampingFactor = 0.1;
-    controls.rotateSpeed = 0.1; 
+    controls.rotateSpeed = 0.1;
 
-    // 上下回転制限（視線の上下を固定）
+    // 上下回転制限
     const centerY = 2.5;
     controls.target.set(0, centerY, 0);
     controls.minPolarAngle = Math.PI / 2;
     controls.maxPolarAngle = Math.PI / 2;
 
-    // 床
     const ivory = 0xfdf6e3;
+
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(10, 10),
       new THREE.MeshStandardMaterial({ color: ivory })
@@ -58,7 +58,6 @@
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
-    // 壁（背面）
     const backWall = new THREE.Mesh(
       new THREE.PlaneGeometry(10, 5),
       new THREE.MeshStandardMaterial({ color: ivory })
@@ -67,7 +66,6 @@
     backWall.position.y = 2.5;
     scene.add(backWall);
 
-    // 左右の壁
     const leftWall = backWall.clone();
     leftWall.rotation.y = Math.PI / 2;
     leftWall.position.set(-5, 2.5, 0);
@@ -78,13 +76,11 @@
     rightWall.position.set(5, 2.5, 0);
     scene.add(rightWall);
 
-    // ★ 追加：正面の壁（Z+方向）
     const frontWall = backWall.clone();
     frontWall.rotation.y = Math.PI;
     frontWall.position.set(0, 2.5, 5);
     scene.add(frontWall);
 
-    // 天井
     const ceiling = new THREE.Mesh(
       new THREE.PlaneGeometry(10, 10),
       new THREE.MeshStandardMaterial({ color: ivory })
@@ -93,17 +89,17 @@
     ceiling.position.y = 5;
     scene.add(ceiling);
 
-    // 光源
+    // カメラ相対位置でライトを配置
     const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(5, 10, 7.5);
     scene.add(light);
-    
-    // ★ 追加：明るさ0.5のアンビエントライト
+
+    const lightTarget = new THREE.Object3D();
+    scene.add(lightTarget);
+    light.target = lightTarget;
+
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
     scene.add(ambientLight);
 
-
-    // 展示パネル（額縁）
     function createFrame(x, y, z) {
       const frame = new THREE.Mesh(
         new THREE.BoxGeometry(1, 1, 0.05),
@@ -119,6 +115,15 @@
 
     function animate() {
       requestAnimationFrame(animate);
+
+      // ライトをカメラから見た相対位置に保つ
+      const relativeLightPos = new THREE.Vector3(5, 10, 7.5); // 相対オフセット
+      const lightPos = camera.position.clone().add(relativeLightPos);
+      light.position.copy(lightPos);
+
+      // ライトの向きもカメラの注視点へ
+      lightTarget.position.copy(controls.target);
+
       controls.update();
       renderer.render(scene, camera);
     }
