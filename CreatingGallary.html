@@ -43,7 +43,6 @@
     controls.dampingFactor = 0.1;
     controls.rotateSpeed = 0.1;
 
-    // 上下回転制限
     const centerY = 2.5;
     controls.target.set(0, centerY, 0);
     controls.minPolarAngle = Math.PI / 2;
@@ -51,6 +50,7 @@
 
     const ivory = 0xfdf6e3;
 
+    // 床
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(10, 10),
       new THREE.MeshStandardMaterial({ color: ivory })
@@ -58,12 +58,12 @@
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
+    // 壁
     const backWall = new THREE.Mesh(
       new THREE.PlaneGeometry(10, 5),
       new THREE.MeshStandardMaterial({ color: ivory })
     );
-    backWall.position.z = -5;
-    backWall.position.y = 2.5;
+    backWall.position.set(0, 2.5, -5);
     scene.add(backWall);
 
     const leftWall = backWall.clone();
@@ -76,11 +76,13 @@
     rightWall.position.set(5, 2.5, 0);
     scene.add(rightWall);
 
+    // 正面の壁
     const frontWall = backWall.clone();
     frontWall.rotation.y = Math.PI;
     frontWall.position.set(0, 2.5, 5);
     scene.add(frontWall);
 
+    // 天井
     const ceiling = new THREE.Mesh(
       new THREE.PlaneGeometry(10, 10),
       new THREE.MeshStandardMaterial({ color: ivory })
@@ -89,17 +91,17 @@
     ceiling.position.y = 5;
     scene.add(ceiling);
 
-    // Directional Light + ターゲット
+    // ライト
     const light = new THREE.DirectionalLight(0xffffff, 1);
     scene.add(light);
+    // ライトのターゲットもシーンに追加（重要）
+    scene.add(light.target);
 
-    const lightTarget = new THREE.Object3D();
-    scene.add(lightTarget);
-    light.target = lightTarget;
-
+    // アンビエントライト
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
     scene.add(ambientLight);
 
+    // 額縁
     function createFrame(x, y, z) {
       const frame = new THREE.Mesh(
         new THREE.BoxGeometry(1, 1, 0.05),
@@ -113,35 +115,21 @@
     scene.add(createFrame(0, 2.5, -4.9));
     scene.add(createFrame(2, 2.5, -4.9));
 
+    // カメラローカル座標系でのライト位置オフセット
+    const lightOffset = new THREE.Vector3(0, 10, 7.5); // カメラ上方向に10、前方に7.5
+
     function animate() {
       requestAnimationFrame(animate);
 
       controls.update();
 
-      // カメラの向き（正面方向）ベクトルを取得
-      const cameraDirection = new THREE.Vector3();
-      camera.getWorldDirection(cameraDirection);
-
-      // ライトの相対位置オフセット（前方 + 上方）
-      const forwardDistance = 7;   // カメラ前方への距離
-      const upwardOffset = 10;     // 上方向への距離
-      const rightOffset = 5;       // 右方向への距離
-
-      // 右方向ベクトルを計算（カメラの上ベクトルと前方向ベクトルの外積）
-      const upVector = new THREE.Vector3(0, 1, 0);
-      const rightVector = new THREE.Vector3().crossVectors(cameraDirection, upVector).normalize();
-
-      // ライト位置 = カメラ位置 + 前方 * forwardDistance + 上方 * upwardOffset + 右方向 * rightOffset
-      const lightPos = new THREE.Vector3();
-      lightPos.copy(camera.position)
-        .add(cameraDirection.clone().multiplyScalar(forwardDistance))
-        .add(upVector.clone().multiplyScalar(upwardOffset))
-        .add(rightVector.clone().multiplyScalar(rightOffset));
-
+      // ライトの位置をカメラのローカル座標系からワールド座標系に変換して更新
+      const lightPos = lightOffset.clone();
+      camera.localToWorld(lightPos);
       light.position.copy(lightPos);
 
-      // ライトターゲットは常に注視点
-      lightTarget.position.copy(controls.target);
+      // ライトのターゲットは注視点に
+      light.target.position.copy(controls.target);
 
       renderer.render(scene, camera);
     }
@@ -152,6 +140,7 @@
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
+
   </script>
 </body>
 </html>
