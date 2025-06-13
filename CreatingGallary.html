@@ -23,11 +23,9 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xfdf6e3); // アイボリー
+    scene.background = new THREE.Color(0xfdf6e3);
 
-    const camera = new THREE.PerspectiveCamera(
-      75, window.innerWidth / window.innerHeight, 0.1, 1000
-    );
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 2.5, 5);
     camera.lookAt(0, 2.5, 0);
     camera.zoom = 2;
@@ -94,14 +92,12 @@
     // ライト
     const light = new THREE.DirectionalLight(0xffffff, 1);
     scene.add(light);
-    // ライトのターゲットもシーンに追加（重要）
     scene.add(light.target);
 
-    // アンビエントライト
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
     scene.add(ambientLight);
 
-    // 額縁
+    // 額縁（枠）作成関数
     function createFrame(x, y, z) {
       const frame = new THREE.Mesh(
         new THREE.BoxGeometry(1, 1, 0.05),
@@ -111,24 +107,48 @@
       return frame;
     }
 
-    scene.add(createFrame(-2, 2.5, -4.9));
-    scene.add(createFrame(0, 2.5, -4.9));
-    scene.add(createFrame(2, 2.5, -4.9));
+    // 額縁3つ追加（左・中央・右）
+    const frameLeft = createFrame(-2, 2.5, -4.9);
+    const frameCenter = createFrame(0, 2.5, -4.9);
+    const frameRight = createFrame(2, 2.5, -4.9);
+    scene.add(frameLeft);
+    scene.add(frameCenter);
+    scene.add(frameRight);
 
-    // カメラローカル座標系でのライト位置オフセット
-    const lightOffset = new THREE.Vector3(0, 10, 7.5); // カメラ上方向に10、前方に7.5
+    // テクスチャローダー
+    const loader = new THREE.TextureLoader();
+
+    // 真ん中のパネルにpicture1.jpgを貼る
+    loader.load('/images/picture1.jpg', (texture) => {
+      const panelGeometry = new THREE.PlaneGeometry(0.9, 0.9);
+      const panelMaterial = new THREE.MeshStandardMaterial({ map: texture });
+      const panel = new THREE.Mesh(panelGeometry, panelMaterial);
+      panel.position.set(0, 2.5, -4.85); // 額縁の前に少し出す（Z軸方向）
+      scene.add(panel);
+    });
+
+    // 右のパネルにpicture2.jpgを貼る
+    loader.load('/images/picture2.jpg', (texture) => {
+      const panelGeometry = new THREE.PlaneGeometry(0.9, 0.9);
+      const panelMaterial = new THREE.MeshStandardMaterial({ map: texture });
+      const panel = new THREE.Mesh(panelGeometry, panelMaterial);
+      panel.position.set(2, 2.5, -4.85);
+      scene.add(panel);
+    });
+
+    // カメラ基準のライト位置オフセット
+    const lightOffset = new THREE.Vector3(0, 10, 7.5);
 
     function animate() {
       requestAnimationFrame(animate);
-
       controls.update();
 
-      // ライトの位置をカメラのローカル座標系からワールド座標系に変換して更新
+      // ライトの位置更新（カメラ基準）
       const lightPos = lightOffset.clone();
       camera.localToWorld(lightPos);
       light.position.copy(lightPos);
 
-      // ライトのターゲットは注視点に
+      // ライトターゲットは注視点へ
       light.target.position.copy(controls.target);
 
       renderer.render(scene, camera);
