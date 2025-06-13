@@ -152,8 +152,8 @@ function onClick(event) {
     // 床サイズ取得（ジオメトリから半サイズを計算）
     const floorWidth = floor.geometry.parameters.width;
     const floorHeight = floor.geometry.parameters.height;
-    const halfWidth = floorWidth / 2;
-    const halfHeight = floorHeight / 2;
+    const halfWidth = floorWidth / 2　-1;
+    const halfHeight = floorHeight / 2　-1;
 
     // 範囲制限（床の端を超えていたらクリップ）
     const clampedX = THREE.MathUtils.clamp(point.x, -halfWidth, halfWidth);
