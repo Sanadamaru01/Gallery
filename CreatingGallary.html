@@ -149,11 +149,22 @@ function onClick(event) {
   if (intersects.length > 0) {
     const point = intersects[0].point;
 
+    // 床サイズ取得（ジオメトリから半サイズを計算）
+    const floorWidth = floor.geometry.parameters.width;
+    const floorHeight = floor.geometry.parameters.height;
+    const halfWidth = floorWidth / 2;
+    const halfHeight = floorHeight / 2;
+
+    // 範囲制限（床の端を超えていたらクリップ）
+    const clampedX = THREE.MathUtils.clamp(point.x, -halfWidth, halfWidth);
+    const clampedZ = THREE.MathUtils.clamp(point.z, -halfHeight, halfHeight);
+
     moveStart = performance.now() / 1000;
     moveFrom.copy(camera.position);
-    moveTo.set(point.x, 2.5, point.z);
+    moveTo.set(clampedX, 2.5, clampedZ);
   }
 }
+
 window.addEventListener('click', onClick);
 
 const lightOffset = new THREE.Vector3(0, 10, 7.5);
