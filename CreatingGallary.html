@@ -18,6 +18,21 @@
 </head>
 <body>
 <script type="module">
+
+
+// ギャラリーサイズ定義
+const GALLERY_WIDTH = 10;    // ギャラリーの横幅（壁幅に合わせる）
+const GALLERY_HEIGHT = 2.5;  // ギャラリーの高さ（画像の中央高さ）
+
+// 画像ファイル名（Imagesフォルダ内に入っているものを手動でここに記載）
+const imageFiles = [
+  'photo1.jpg',
+  'photo2.jpg',
+  'photo3.jpg',
+  // 必要に応じて追加
+];
+
+  
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
@@ -89,18 +104,6 @@ const ambientLight = new THREE.AmbientLight(0x888888, 0.5);
 scene.add(ambientLight);
 
 const loader = new THREE.TextureLoader();
-
-// ギャラリーサイズ定義
-const GALLERY_WIDTH = 10;    // ギャラリーの横幅（壁幅に合わせる）
-const GALLERY_HEIGHT = 2.5;  // ギャラリーの高さ（画像の中央高さ）
-
-// 画像ファイル名（Imagesフォルダ内に入っているものを手動でここに記載）
-const imageFiles = [
-  'photo1.jpg',
-  'photo2.jpg',
-  'photo3.jpg',
-  // 必要に応じて追加
-];
 
 // 画像フレームとパネル生成関数
 function createFrameWithImage(x, y, z, imagePath) {
