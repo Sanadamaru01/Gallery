@@ -2,13 +2,12 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>カスタムギャラリー</title>
+  <title>ギャラリー with パネル</title>
   <style>
     body { margin: 0; overflow: hidden; }
     canvas { display: block; }
   </style>
 
-  <!-- Importmap：CDN経由でモジュール解決 -->
   <script type="importmap">
     {
       "imports": {
@@ -23,77 +22,83 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    // シーンと背景色
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xfdf6e3); // アイボリー背景
 
-    // カメラ
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(0, 1.5, 3); // 視点の高さ = 1.5m相当
+    camera.position.set(0, 1.5, 3);
 
-    // レンダラー
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
     // ライト（天井中央）
     const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-    directionalLight.position.set(0, 5, 0); // 天井の中心から照らす
+    directionalLight.position.set(0, 5, 0);
     scene.add(directionalLight);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 1);
     scene.add(ambientLight);
 
-    // 壁・床・天井の色
-    const material = new THREE.MeshStandardMaterial({ color: 0xfdf6e3 }); // アイボリー
+    const material = new THREE.MeshStandardMaterial({ color: 0xfdf6e3 });
 
-    // 床
+    // 床・天井・壁
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), material);
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
-    // 天井
     const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), material);
     ceiling.position.y = 3;
     ceiling.rotation.x = Math.PI / 2;
     scene.add(ceiling);
 
-    // 壁（前・後・左・右）
+    const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xfdf6e3 });
+
     const wallGeometry = new THREE.PlaneGeometry(10, 3);
-    const backWall = new THREE.Mesh(wallGeometry, material);
+    const backWall = new THREE.Mesh(wallGeometry, wallMaterial);
     backWall.position.z = -5;
     backWall.position.y = 1.5;
     scene.add(backWall);
 
-    const frontWall = new THREE.Mesh(wallGeometry, material);
+    const frontWall = new THREE.Mesh(wallGeometry, wallMaterial);
     frontWall.position.z = 5;
     frontWall.rotation.y = Math.PI;
     frontWall.position.y = 1.5;
     scene.add(frontWall);
 
-    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(10, 3), material);
+    const leftWall = new THREE.Mesh(wallGeometry, wallMaterial);
     leftWall.rotation.y = Math.PI / 2;
     leftWall.position.x = -5;
     leftWall.position.y = 1.5;
     scene.add(leftWall);
 
-    const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(10, 3), material);
+    const rightWall = new THREE.Mesh(wallGeometry, wallMaterial);
     rightWall.rotation.y = -Math.PI / 2;
     rightWall.position.x = 5;
     rightWall.position.y = 1.5;
     scene.add(rightWall);
 
-    // カメラコントロール
+    // === ✅ 正面壁に展示パネルを追加 ===
+    const panelMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    const panelGeometry = new THREE.BoxGeometry(1, 1, 0.05);
+
+    const positions = [-2, 0, 2];
+    positions.forEach(x => {
+      const panel = new THREE.Mesh(panelGeometry, panelMaterial);
+      panel.position.set(x, 1.5, 4.95); // 正面壁の手前
+      scene.add(panel);
+    });
+
+    // コントロール設定
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enablePan = false;            // パン禁止
-    controls.enableZoom = false;           // ズーム固定
-    controls.enableDamping = true;         // 慣性あり
-    controls.dampingFactor = 0.1;          // 慣性速度
-    controls.rotateSpeed = 0.3;            // 左右の回転をゆっくりに
-    controls.minPolarAngle = Math.PI / 2;  // 上下固定
+    controls.enablePan = false;
+    controls.enableZoom = false;
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.1;
+    controls.rotateSpeed = 0.3;
+    controls.minPolarAngle = Math.PI / 2;
     controls.maxPolarAngle = Math.PI / 2;
 
-    // アニメーション
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
@@ -102,7 +107,6 @@
 
     animate();
 
-    // リサイズ対応
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
