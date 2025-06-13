@@ -119,7 +119,7 @@
     const loader = new THREE.TextureLoader();
 
     // 真ん中のパネルにphoto1.jpgを貼る
-    loader.load('/images/photo1.jpg', (texture) => {
+    loader.load('./images/photo1.jpg', (texture) => {
       const panelGeometry = new THREE.PlaneGeometry(0.9, 0.9);
       const panelMaterial = new THREE.MeshStandardMaterial({ map: texture });
       const panel = new THREE.Mesh(panelGeometry, panelMaterial);
@@ -128,7 +128,7 @@
     });
 
     // 右のパネルにphoto2.jpgを貼る
-    loader.load('/images/photo2.jpg', (texture) => {
+    loader.load('./images/photo2.jpg', (texture) => {
       const panelGeometry = new THREE.PlaneGeometry(0.9, 0.9);
       const panelMaterial = new THREE.MeshStandardMaterial({ map: texture });
       const panel = new THREE.Mesh(panelGeometry, panelMaterial);
