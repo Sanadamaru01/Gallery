@@ -78,6 +78,12 @@
     rightWall.position.set(5, 2.5, 0);
     scene.add(rightWall);
 
+    // ★ 追加：正面の壁（Z+方向）
+    const frontWall = backWall.clone();
+    frontWall.rotation.y = Math.PI;
+    frontWall.position.set(0, 2.5, 5);
+    scene.add(frontWall);
+
     // 天井
     const ceiling = new THREE.Mesh(
       new THREE.PlaneGeometry(10, 10),
