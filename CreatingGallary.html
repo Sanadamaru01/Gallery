@@ -161,21 +161,27 @@ window.addEventListener('mouseup', (event) => {
 
   const intersects = raycaster.intersectObject(floor);
   if (intersects.length > 0) {
-    const lookAtPos = intersects[0].point;
+    const clicked = intersects[0].point;
 
-    if (Math.abs(lookAtPos.x) > floorLimit || Math.abs(lookAtPos.z) > floorLimit) return;
+    if (Math.abs(clicked.x) > floorLimit || Math.abs(clicked.z) > floorLimit) return;
 
+    const currentLookAtY = controls.target.y;
+
+    // LookAt位置の高さを維持したまま更新
+    const lookAtPos = new THREE.Vector3(clicked.x, currentLookAtY, clicked.z);
+    controls.target.copy(lookAtPos);
+
+    // カメラ移動先も高さは維持して1m手前
     const direction = new THREE.Vector3().subVectors(lookAtPos, camera.position).normalize();
     const newCamPos = lookAtPos.clone().addScaledVector(direction, -1);
-    newCamPos.y = 2.5;
+    newCamPos.y = camera.position.y; // カメラ高さを維持
 
     moveStart = performance.now() / 1000;
     moveFrom.copy(camera.position);
     moveTo.copy(newCamPos);
-
-    controls.target.copy(lookAtPos);
   }
 });
+
 
 // --------------------------------------
 
