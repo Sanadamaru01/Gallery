@@ -2,12 +2,13 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>3Dギャラリー（調整済み）</title>
+  <title>カスタムギャラリー</title>
   <style>
     body { margin: 0; overflow: hidden; }
     canvas { display: block; }
   </style>
 
+  <!-- Importmap：CDN経由でモジュール解決 -->
   <script type="importmap">
     {
       "imports": {
@@ -22,94 +23,86 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+    // シーンと背景色
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xfdf6e3); // アイボリー
+    scene.background = new THREE.Color(0xfdf6e3); // アイボリー背景
 
-    const camera = new THREE.PerspectiveCamera(
-      75, window.innerWidth / window.innerHeight, 0.1, 1000
-    );
-    camera.position.set(0, 2.5, 5); // 展示パネルの中心と同じ高さ
-    camera.lookAt(0, 2.5, 0);       // 視線をギャラリーの中心へ
+    // カメラ
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 1.5, 3); // 視点の高さ = 1.5m相当
 
+    // レンダラー
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
+    // ライト（天井中央）
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+    directionalLight.position.set(0, 5, 0); // 天井の中心から照らす
+    scene.add(directionalLight);
 
-    // 上下回転制限（視線の上下を固定）
-    const centerY = 2.5;
-    controls.target.set(0, centerY, 0);
-    controls.minPolarAngle = Math.PI / 2;
-    controls.maxPolarAngle = Math.PI / 2;
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+    scene.add(ambientLight);
+
+    // 壁・床・天井の色
+    const material = new THREE.MeshStandardMaterial({ color: 0xfdf6e3 }); // アイボリー
 
     // 床
-    const ivory = 0xfdf6e3;
-    const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(10, 10),
-      new THREE.MeshBasicMaterial({ color: ivory })
-    );
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), material);
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
-    // 壁（背面）
-    const backWall = new THREE.Mesh(
-      new THREE.PlaneGeometry(10, 5),
-      new THREE.MeshBasicMaterial({ color: ivory })
-    );
-    backWall.position.z = -5;
-    backWall.position.y = 2.5;
-    scene.add(backWall);
-
-    // 左右の壁
-    const leftWall = backWall.clone();
-    leftWall.rotation.y = Math.PI / 2;
-    leftWall.position.set(-5, 2.5, 0);
-    scene.add(leftWall);
-
-    const rightWall = backWall.clone();
-    rightWall.rotation.y = -Math.PI / 2;
-    rightWall.position.set(5, 2.5, 0);
-    scene.add(rightWall);
-
     // 天井
-    const ceiling = new THREE.Mesh(
-      new THREE.PlaneGeometry(10, 10),
-      new THREE.MeshBasicMaterial({ color: ivory })
-    );
+    const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), material);
+    ceiling.position.y = 3;
     ceiling.rotation.x = Math.PI / 2;
-    ceiling.position.y = 5;
     scene.add(ceiling);
 
-    // 光源
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(5, 10, 7.5);
-    scene.add(light);
-    scene.add(new THREE.AmbientLight(0x404040));
+    // 壁（前・後・左・右）
+    const wallGeometry = new THREE.PlaneGeometry(10, 3);
+    const backWall = new THREE.Mesh(wallGeometry, material);
+    backWall.position.z = -5;
+    backWall.position.y = 1.5;
+    scene.add(backWall);
 
-    // 展示パネル（額縁）
-    function createFrame(x, y, z) {
-      const frame = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 0.05),
-        new THREE.MeshStandardMaterial({ color: 0x333333 })
-      );
-      frame.position.set(x, y, z);
-      return frame;
-    }
+    const frontWall = new THREE.Mesh(wallGeometry, material);
+    frontWall.position.z = 5;
+    frontWall.rotation.y = Math.PI;
+    frontWall.position.y = 1.5;
+    scene.add(frontWall);
 
-    scene.add(createFrame(-2, 2.5, -4.9));
-    scene.add(createFrame(0, 2.5, -4.9));
-    scene.add(createFrame(2, 2.5, -4.9));
+    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(10, 3), material);
+    leftWall.rotation.y = Math.PI / 2;
+    leftWall.position.x = -5;
+    leftWall.position.y = 1.5;
+    scene.add(leftWall);
 
+    const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(10, 3), material);
+    rightWall.rotation.y = -Math.PI / 2;
+    rightWall.position.x = 5;
+    rightWall.position.y = 1.5;
+    scene.add(rightWall);
+
+    // カメラコントロール
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enablePan = false;            // パン禁止
+    controls.enableZoom = false;           // ズーム固定
+    controls.enableDamping = true;         // 慣性あり
+    controls.dampingFactor = 0.1;          // 慣性速度
+    controls.rotateSpeed = 0.3;            // 左右の回転をゆっくりに
+    controls.minPolarAngle = Math.PI / 2;  // 上下固定
+    controls.maxPolarAngle = Math.PI / 2;
+
+    // アニメーション
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
     }
+
     animate();
 
+    // リサイズ対応
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
