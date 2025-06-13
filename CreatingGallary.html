@@ -90,6 +90,19 @@ scene.add(ambientLight);
 
 const loader = new THREE.TextureLoader();
 
+// ギャラリーサイズ定義
+const GALLERY_WIDTH = 10;    // ギャラリーの横幅（壁幅に合わせる）
+const GALLERY_HEIGHT = 2.5;  // ギャラリーの高さ（画像の中央高さ）
+
+// 画像ファイル名（Imagesフォルダ内に入っているものを手動でここに記載）
+const imageFiles = [
+  'photo1.jpg',
+  'photo2.jpg',
+  'photo3.jpg',
+  // 必要に応じて追加
+];
+
+// 画像フレームとパネル生成関数
 function createFrameWithImage(x, y, z, imagePath) {
   loader.load(imagePath, (texture) => {
     texture.encoding = THREE.sRGBEncoding;
@@ -123,9 +136,15 @@ function createFrameWithImage(x, y, z, imagePath) {
   });
 }
 
-createFrameWithImage(-2.5, 2.5, -4.9, './images/photo1.jpg');
-createFrameWithImage(0, 2.5, -4.9, './images/photo1.jpg');
-createFrameWithImage(2.5, 2.5, -4.9, './images/photo2.jpg');
+// 画像をギャラリー幅いっぱいに均等配置
+const count = imageFiles.length;
+const spacePerImage = GALLERY_WIDTH / count;
+
+imageFiles.forEach((filename, index) => {
+  const x = -GALLERY_WIDTH / 2 + spacePerImage * (index + 0.5);
+  const z = -4.9; // 壁ギリギリ手前
+  createFrameWithImage(x, GALLERY_HEIGHT, z, './images/' + filename);
+});
 
 // --------------------------------------
 // カメラ移動ロジック（LookAtから1m前へ）
@@ -141,7 +160,7 @@ let isClick = false;
 let clickStartTime = 0;
 
 const floorSize = 10;
-const floorLimit = floorSize / 2 -1;
+const floorLimit = floorSize / 2 - 1;
 
 window.addEventListener('mousedown', () => {
   isClick = true;
@@ -181,7 +200,6 @@ window.addEventListener('mouseup', (event) => {
     moveTo.copy(newCamPos);
   }
 });
-
 
 // --------------------------------------
 
