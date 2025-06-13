@@ -141,39 +141,38 @@ let moveTo = new THREE.Vector3();
 const moveDuration = 0.6; // 秒
 
 function onClick(event) {
+  if (!isClick) return;
+
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
 
   const intersects = raycaster.intersectObject(floor);
   if (intersects.length > 0) {
-    const point = intersects[0].point;
+    const lookAtPos = intersects[0].point;
 
-    const floorWidth = floor.geometry.parameters.width;
-    const floorHeight = floor.geometry.parameters.height;
-    const halfWidth = floorWidth / 2;
-    const halfHeight = floorHeight / 2;
+    // 床サイズ制限（必要に応じて）
+    const limit = floorSize / 2 + 0.5; // 余裕分追加
+    if (Math.abs(lookAtPos.x) > limit || Math.abs(lookAtPos.z) > limit) return;
 
-    // 許容される余白
-    const margin = 0.5;
+    // 視線方向を計算
+    const direction = new THREE.Vector3();
+    direction.subVectors(lookAtPos, camera.position).normalize();
 
-    // 床サイズより大幅に外れていれば無視
-    if (
-      Math.abs(point.x) > halfWidth + margin ||
-      Math.abs(point.z) > halfHeight + margin
-    ) {
-      return; // ❌ 無視して終了
-    }
+    // カメラをLookAtの逆方向に1メートル移動
+    const cameraPos = lookAtPos.clone().addScaledVector(direction, -1);
+    cameraPos.y = 2.5; // 高さを一定に保つ（任意）
 
-    // クリックが少し外れていても、床の端に補正して移動
-    const clampedX = THREE.MathUtils.clamp(point.x, -halfWidth, halfWidth);
-    const clampedZ = THREE.MathUtils.clamp(point.z, -halfHeight, halfHeight);
-
+    // アニメーション用にセット
     moveStart = performance.now() / 1000;
     moveFrom.copy(camera.position);
-    moveTo.set(clampedX, 2.5, clampedZ);
+    moveTo.copy(cameraPos);
+
+    // 最終的なLookAtターゲットを記録しておく
+    controls.target.copy(lookAtPos);
   }
 }
+
 
 
 window.addEventListener('click', onClick);
