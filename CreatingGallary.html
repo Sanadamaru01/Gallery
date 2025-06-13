@@ -40,8 +40,8 @@
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.enableZoom = false;
-    controls.dampingFactor = 0.01;
-    controls.rotateSpeed = 0.01; 
+    controls.dampingFactor = 0.1;
+    controls.rotateSpeed = 0.1; 
 
     // 上下回転制限（視線の上下を固定）
     const centerY = 2.5;
