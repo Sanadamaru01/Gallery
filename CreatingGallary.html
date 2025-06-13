@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>ギャラリー with パネル</title>
+  <title>ギャラリー</title>
   <style>
     body { margin: 0; overflow: hidden; }
     canvas { display: block; }
@@ -32,12 +32,12 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // ライト（天井中央）
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-    directionalLight.position.set(0, 5, 0);
+    // ✅ 光の位置を戻す（斜め上から）
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    directionalLight.position.set(0, 3, 5); // ← 元のようにカメラ側上方から
     scene.add(directionalLight);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
     const material = new THREE.MeshStandardMaterial({ color: 0xfdf6e3 });
@@ -56,40 +56,34 @@
 
     const wallGeometry = new THREE.PlaneGeometry(10, 3);
     const backWall = new THREE.Mesh(wallGeometry, wallMaterial);
-    backWall.position.z = -5;
-    backWall.position.y = 1.5;
+    backWall.position.set(0, 1.5, -5);
     scene.add(backWall);
 
     const frontWall = new THREE.Mesh(wallGeometry, wallMaterial);
-    frontWall.position.z = 5;
+    frontWall.position.set(0, 1.5, 5);
     frontWall.rotation.y = Math.PI;
-    frontWall.position.y = 1.5;
     scene.add(frontWall);
 
     const leftWall = new THREE.Mesh(wallGeometry, wallMaterial);
     leftWall.rotation.y = Math.PI / 2;
-    leftWall.position.x = -5;
-    leftWall.position.y = 1.5;
+    leftWall.position.set(-5, 1.5, 0);
     scene.add(leftWall);
 
     const rightWall = new THREE.Mesh(wallGeometry, wallMaterial);
     rightWall.rotation.y = -Math.PI / 2;
-    rightWall.position.x = 5;
-    rightWall.position.y = 1.5;
+    rightWall.position.set(5, 1.5, 0);
     scene.add(rightWall);
 
-    // === ✅ 正面壁に展示パネルを追加 ===
+    // 正面壁のパネル（X = -2, 0, 2）
     const panelMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
     const panelGeometry = new THREE.BoxGeometry(1, 1, 0.05);
-
-    const positions = [-2, 0, 2];
-    positions.forEach(x => {
+    [-2, 0, 2].forEach(x => {
       const panel = new THREE.Mesh(panelGeometry, panelMaterial);
-      panel.position.set(x, 1.5, 4.95); // 正面壁の手前
+      panel.position.set(x, 1.5, 4.95);
       scene.add(panel);
     });
 
-    // コントロール設定
+    // コントロール
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enablePan = false;
     controls.enableZoom = false;
