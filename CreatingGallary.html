@@ -33,6 +33,7 @@
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputEncoding = THREE.sRGBEncoding; // ✅ sRGB補正
     document.body.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -74,13 +75,11 @@
     rightWall.position.set(5, 2.5, 0);
     scene.add(rightWall);
 
-    // 正面の壁
     const frontWall = backWall.clone();
     frontWall.rotation.y = Math.PI;
     frontWall.position.set(0, 2.5, 5);
     scene.add(frontWall);
 
-    // 天井
     const ceiling = new THREE.Mesh(
       new THREE.PlaneGeometry(10, 10),
       new THREE.MeshStandardMaterial({ color: ivory })
@@ -89,12 +88,12 @@
     ceiling.position.y = 5;
     scene.add(ceiling);
 
-    // ライト
-    const light = new THREE.DirectionalLight(0xffffff, 3);
+    // ライト設定（バランス調整済み）
+    const light = new THREE.DirectionalLight(0xffffff, 1.5);
     scene.add(light);
     scene.add(light.target);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    const ambientLight = new THREE.AmbientLight(0x888888, 0.2); // 控えめな環境光
     scene.add(ambientLight);
 
     const loader = new THREE.TextureLoader();
@@ -102,6 +101,8 @@
     // 画像の長辺を3に固定して額縁とパネルを作る関数
     function createFrameWithImage(x, y, z, imagePath) {
       loader.load(imagePath, (texture) => {
+        texture.encoding = THREE.sRGBEncoding; // ✅ sRGB補正
+
         const imgWidth = texture.image.width;
         const imgHeight = texture.image.height;
         const aspect = imgHeight / imgWidth;
@@ -109,16 +110,13 @@
 
         let frameWidth, frameHeight;
         if (imgWidth >= imgHeight) {
-          // 横長画像
           frameWidth = fixedLongSide;
           frameHeight = fixedLongSide * aspect;
         } else {
-          // 縦長画像
           frameHeight = fixedLongSide;
           frameWidth = fixedLongSide / aspect;
         }
 
-        // 額縁作成（厚み0.05）
         const frame = new THREE.Mesh(
           new THREE.BoxGeometry(frameWidth, frameHeight, 0.05),
           new THREE.MeshStandardMaterial({ color: 0x333333 })
@@ -126,16 +124,20 @@
         frame.position.set(x, y, z);
         scene.add(frame);
 
-        // パネル作成（額縁より少し小さく、Z方向に少し前に出す）
         const panelGeometry = new THREE.PlaneGeometry(frameWidth * 0.95, frameHeight * 0.95);
-        const panelMaterial = new THREE.MeshStandardMaterial({ map: texture, side: THREE.DoubleSide });
+        const panelMaterial = new THREE.MeshStandardMaterial({
+          map: texture,
+          roughness: 1.0,
+          metalness: 0.0,
+          side: THREE.DoubleSide
+        });
         const panel = new THREE.Mesh(panelGeometry, panelMaterial);
         panel.position.set(x, y, z + 0.03);
         scene.add(panel);
       });
     }
 
-    // 左・中央・右の位置に額縁＋パネルを配置（例として中央と右だけ画像指定）
+    // 額縁と写真の設置
     createFrameWithImage(-2.5, 2.5, -4.9, './images/photo1.jpg');
     createFrameWithImage(0, 2.5, -4.9, './images/photo1.jpg');
     createFrameWithImage(2.5, 2.5, -4.9, './images/photo2.jpg');
@@ -147,12 +149,10 @@
       requestAnimationFrame(animate);
       controls.update();
 
-      // ライトの位置更新（カメラ基準）
+      // ライトの位置更新
       const lightPos = lightOffset.clone();
       camera.localToWorld(lightPos);
       light.position.copy(lightPos);
-
-      // ライトターゲットは注視点へ
       light.target.position.copy(controls.target);
 
       renderer.render(scene, camera);
