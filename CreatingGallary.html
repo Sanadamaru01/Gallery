@@ -149,13 +149,23 @@ function onClick(event) {
   if (intersects.length > 0) {
     const point = intersects[0].point;
 
-    // 床サイズ取得（ジオメトリから半サイズを計算）
     const floorWidth = floor.geometry.parameters.width;
     const floorHeight = floor.geometry.parameters.height;
-    const halfWidth = floorWidth / 2　-1;
-    const halfHeight = floorHeight / 2　-1;
+    const halfWidth = floorWidth / 2;
+    const halfHeight = floorHeight / 2;
 
-    // 範囲制限（床の端を超えていたらクリップ）
+    // 許容される余白
+    const margin = 0.5;
+
+    // 床サイズより大幅に外れていれば無視
+    if (
+      Math.abs(point.x) > halfWidth + margin ||
+      Math.abs(point.z) > halfHeight + margin
+    ) {
+      return; // ❌ 無視して終了
+    }
+
+    // クリックが少し外れていても、床の端に補正して移動
     const clampedX = THREE.MathUtils.clamp(point.x, -halfWidth, halfWidth);
     const clampedZ = THREE.MathUtils.clamp(point.z, -halfHeight, halfHeight);
 
@@ -164,6 +174,7 @@ function onClick(event) {
     moveTo.set(clampedX, 2.5, clampedZ);
   }
 }
+
 
 window.addEventListener('click', onClick);
 
