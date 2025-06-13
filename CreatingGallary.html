@@ -28,8 +28,8 @@
     const camera = new THREE.PerspectiveCamera(
       75, window.innerWidth / window.innerHeight, 0.1, 1000
     );
-    camera.position.set(0, 2.5, 5); // 展示パネルの中心と同じ高さ
-    camera.lookAt(0, 2.5, 0);       // 視線をギャラリーの中心へ
+    camera.position.set(0, 2.5, 5);
+    camera.lookAt(0, 2.5, 0);
     camera.zoom = 2;
     camera.updateProjectionMatrix();
 
@@ -89,7 +89,7 @@
     ceiling.position.y = 5;
     scene.add(ceiling);
 
-    // カメラ相対位置でライトを配置
+    // Directional Light + ターゲット
     const light = new THREE.DirectionalLight(0xffffff, 1);
     scene.add(light);
 
@@ -116,15 +116,33 @@
     function animate() {
       requestAnimationFrame(animate);
 
-      // ライトをカメラから見た相対位置に保つ
-      const relativeLightPos = new THREE.Vector3(5, 10, 7.5); // 相対オフセット
-      const lightPos = camera.position.clone().add(relativeLightPos);
+      controls.update();
+
+      // カメラの向き（正面方向）ベクトルを取得
+      const cameraDirection = new THREE.Vector3();
+      camera.getWorldDirection(cameraDirection);
+
+      // ライトの相対位置オフセット（前方 + 上方）
+      const forwardDistance = 7;   // カメラ前方への距離
+      const upwardOffset = 10;     // 上方向への距離
+      const rightOffset = 5;       // 右方向への距離
+
+      // 右方向ベクトルを計算（カメラの上ベクトルと前方向ベクトルの外積）
+      const upVector = new THREE.Vector3(0, 1, 0);
+      const rightVector = new THREE.Vector3().crossVectors(cameraDirection, upVector).normalize();
+
+      // ライト位置 = カメラ位置 + 前方 * forwardDistance + 上方 * upwardOffset + 右方向 * rightOffset
+      const lightPos = new THREE.Vector3();
+      lightPos.copy(camera.position)
+        .add(cameraDirection.clone().multiplyScalar(forwardDistance))
+        .add(upVector.clone().multiplyScalar(upwardOffset))
+        .add(rightVector.clone().multiplyScalar(rightOffset));
+
       light.position.copy(lightPos);
 
-      // ライトの向きもカメラの注視点へ
+      // ライトターゲットは常に注視点
       lightTarget.position.copy(controls.target);
 
-      controls.update();
       renderer.render(scene, camera);
     }
     animate();
