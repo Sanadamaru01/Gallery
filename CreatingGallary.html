@@ -59,40 +59,40 @@ controls.target.set(0, 2.5, 0);
 const ivory = 0xfdf6e3;
 
 const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(10, 10),
+  new THREE.PlaneGeometry(GALLERY_WIDTH, GALLERY_WIDTH),
   new THREE.MeshStandardMaterial({ color: ivory })
 );
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 
 const backWall = new THREE.Mesh(
-  new THREE.PlaneGeometry(10, 5),
+  new THREE.PlaneGeometry(GALLERY_WIDTH,GALLERY_HEIGHT/2),
   new THREE.MeshStandardMaterial({ color: ivory })
 );
-backWall.position.set(0, 2.5, -5);
+backWall.position.set(0, GALLERY_HEIGHT, -1*GALLERY_WIDTH);
 scene.add(backWall);
 
 const leftWall = backWall.clone();
 leftWall.rotation.y = Math.PI / 2;
-leftWall.position.set(-5, 2.5, 0);
+leftWall.position.set(-1*GALLERY_WIDTH, GALLERY_HEIGHT, 0);
 scene.add(leftWall);
 
 const rightWall = backWall.clone();
 rightWall.rotation.y = -Math.PI / 2;
-rightWall.position.set(5, 2.5, 0);
+rightWall.position.set(GALLERY_WIDTH, GALLERY_HEIGHT, 0);
 scene.add(rightWall);
 
 const frontWall = backWall.clone();
 frontWall.rotation.y = Math.PI;
-frontWall.position.set(0, 2.5, 5);
+frontWall.position.set(0, GALLERY_HEIGHT, GALLERY_WIDTH);
 scene.add(frontWall);
 
 const ceiling = new THREE.Mesh(
-  new THREE.PlaneGeometry(10, 10),
+  new THREE.PlaneGeometry(GALLERY_WIDTH, GALLERY_WIDTH),
   new THREE.MeshStandardMaterial({ color: ivory })
 );
 ceiling.rotation.x = Math.PI / 2;
-ceiling.position.y = 5;
+ceiling.position.y = GALLERY_HEIGHT;
 scene.add(ceiling);
 
 const light = new THREE.DirectionalLight(0xffffff, 1.2);
@@ -144,7 +144,7 @@ const spacePerImage = GALLERY_WIDTH / count;
 
 imageFiles.forEach((filename, index) => {
   const x = -GALLERY_WIDTH / 2 + spacePerImage * (index + 0.5);
-  const z = -4.9; // 壁ギリギリ手前
+  const z = -1*(GALLERY_WIDTH　-0.1); // 壁ギリギリ手前
   createFrameWithImage(x, GALLERY_HEIGHT, z, './images/' + filename);
 });
 
@@ -161,7 +161,7 @@ const moveDuration = 0.6;
 let isClick = false;
 let clickStartTime = 0;
 
-const floorSize = 10;
+const floorSize = GALLERY_WIDTH;
 const floorLimit = floorSize / 2 - 1;
 
 window.addEventListener('mousedown', () => {
