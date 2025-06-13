@@ -49,7 +49,7 @@
     const ivory = 0xfdf6e3;
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(10, 10),
-      new THREE.MeshStandardMaterial({ color: ivory })
+      new THREE.MeshBasicMaterial({ color: ivory })
     );
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
@@ -57,7 +57,7 @@
     // 壁（背面）
     const backWall = new THREE.Mesh(
       new THREE.PlaneGeometry(10, 5),
-      new THREE.MeshStandardMaterial({ color: ivory })
+      new THREE.MeshBasicMaterial({ color: ivory })
     );
     backWall.position.z = -5;
     backWall.position.y = 2.5;
@@ -77,7 +77,7 @@
     // 天井
     const ceiling = new THREE.Mesh(
       new THREE.PlaneGeometry(10, 10),
-      new THREE.MeshStandardMaterial({ color: ivory })
+      new THREE.MeshBasicMaterial({ color: ivory })
     );
     ceiling.rotation.x = Math.PI / 2;
     ceiling.position.y = 5;
