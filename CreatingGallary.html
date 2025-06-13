@@ -113,11 +113,14 @@
 
     // 画像と額縁を一緒に作る関数
     function addPanelWithFrame(x, y, z, imagePath) {
-      loader.load(imagePath, (texture) => {
-        const imgWidth = texture.image.width;
-        const imgHeight = texture.image.height;
+      // 先にImageで画像を読み込む
+      const img = new Image();
+      img.src = imagePath;
+      img.onload = () => {
+        const imgWidth = img.width;
+        const imgHeight = img.height;
         const longSideLength = 3.0; // 長辺の固定サイズ（額縁の長辺を3倍）
-
+    
         let width, height;
         if (imgWidth >= imgHeight) {
           width = longSideLength;
@@ -126,19 +129,23 @@
           height = longSideLength;
           width = (imgWidth / imgHeight) * longSideLength;
         }
-
+    
+        // テクスチャを作る
+        const texture = new THREE.TextureLoader().load(imagePath);
+    
         // 額縁
         const frame = createFrame(x, y, z, width, height);
         scene.add(frame);
-
+    
         // 写真パネル（少し額縁より手前にZ方向にオフセット）
         const panelGeometry = new THREE.PlaneGeometry(width * 0.9, height * 0.9);
         const panelMaterial = new THREE.MeshStandardMaterial({ map: texture });
         const panel = new THREE.Mesh(panelGeometry, panelMaterial);
         panel.position.set(x, y, z - 0.03);
         scene.add(panel);
-      });
+      };
     }
+
 
     // 左は額縁だけ（画像なし）
     const frameLeft = createFrame(-4, 2.5, -4.9, 1, 1);
