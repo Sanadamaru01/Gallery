@@ -1,22 +1,157 @@
-const floorSize = 10; // 床のサイズを保持（10x10）
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>3Dギャラリー</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.175.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.175.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xfdf6e3);
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 2.5, 1);
+camera.lookAt(0, 2.5, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputEncoding = THREE.sRGBEncoding;
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.enableZoom = false;
+controls.dampingFactor = 0.1;
+controls.rotateSpeed = 0.1;
+controls.minPolarAngle = Math.PI / 2;
+controls.maxPolarAngle = Math.PI / 2;
+controls.target.set(0, 2.5, 0);
+
+const ivory = 0xfdf6e3;
+
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(10, 10),
+  new THREE.MeshStandardMaterial({ color: ivory })
+);
+floor.rotation.x = -Math.PI / 2;
+scene.add(floor);
+
+const backWall = new THREE.Mesh(
+  new THREE.PlaneGeometry(10, 5),
+  new THREE.MeshStandardMaterial({ color: ivory })
+);
+backWall.position.set(0, 2.5, -5);
+scene.add(backWall);
+
+const leftWall = backWall.clone();
+leftWall.rotation.y = Math.PI / 2;
+leftWall.position.set(-5, 2.5, 0);
+scene.add(leftWall);
+
+const rightWall = backWall.clone();
+rightWall.rotation.y = -Math.PI / 2;
+rightWall.position.set(5, 2.5, 0);
+scene.add(rightWall);
+
+const frontWall = backWall.clone();
+frontWall.rotation.y = Math.PI;
+frontWall.position.set(0, 2.5, 5);
+scene.add(frontWall);
+
+const ceiling = new THREE.Mesh(
+  new THREE.PlaneGeometry(10, 10),
+  new THREE.MeshStandardMaterial({ color: ivory })
+);
+ceiling.rotation.x = Math.PI / 2;
+ceiling.position.y = 5;
+scene.add(ceiling);
+
+const light = new THREE.DirectionalLight(0xffffff, 1.2);
+scene.add(light);
+scene.add(light.target);
+
+const ambientLight = new THREE.AmbientLight(0x888888, 0.5);
+scene.add(ambientLight);
+
+const loader = new THREE.TextureLoader();
+
+function createFrameWithImage(x, y, z, imagePath) {
+  loader.load(imagePath, (texture) => {
+    texture.encoding = THREE.sRGBEncoding;
+    const imgWidth = texture.image.width;
+    const imgHeight = texture.image.height;
+    const aspect = imgHeight / imgWidth;
+    const fixedLongSide = 3;
+
+    let frameWidth, frameHeight;
+    if (imgWidth >= imgHeight) {
+      frameWidth = fixedLongSide;
+      frameHeight = fixedLongSide * aspect;
+    } else {
+      frameHeight = fixedLongSide;
+      frameWidth = fixedLongSide / aspect;
+    }
+
+    const frame = new THREE.Mesh(
+      new THREE.BoxGeometry(frameWidth, frameHeight, 0.05),
+      new THREE.MeshStandardMaterial({ color: 0x333333 })
+    );
+    frame.position.set(x, y, z);
+    scene.add(frame);
+
+    const panel = new THREE.Mesh(
+      new THREE.PlaneGeometry(frameWidth * 0.95, frameHeight * 0.95),
+      new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
+    );
+    panel.position.set(x, y, z + 0.03);
+    scene.add(panel);
+  });
+}
+
+createFrameWithImage(-2.5, 2.5, -4.9, './images/photo1.jpg');
+createFrameWithImage(0, 2.5, -4.9, './images/photo1.jpg');
+createFrameWithImage(2.5, 2.5, -4.9, './images/photo2.jpg');
+
+// --------------------------------------
+// カメラ移動ロジック（LookAtから1m前へ）
+// --------------------------------------
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let moveStart = null;
+let moveFrom = new THREE.Vector3();
+let moveTo = new THREE.Vector3();
+const moveDuration = 0.6;
 
 let isClick = false;
 let clickStartTime = 0;
 
-// マウス押下時：クリック判定の準備
+const floorSize = 10;
+const floorLimit = floorSize / 2 + 0.5;
+
 window.addEventListener('mousedown', () => {
   isClick = true;
   clickStartTime = performance.now();
 });
 
-// マウス移動でドラッグと判定
 window.addEventListener('mousemove', () => {
-  if (performance.now() - clickStartTime > 200) {
-    isClick = false;
-  }
+  if (performance.now() - clickStartTime > 200) isClick = false;
 });
 
-// マウスアップ時にクリックと判定された場合だけ実行
 window.addEventListener('mouseup', (event) => {
   if (!isClick) return;
 
@@ -28,24 +163,53 @@ window.addEventListener('mouseup', (event) => {
   if (intersects.length > 0) {
     const lookAtPos = intersects[0].point;
 
-    // 範囲外チェック（床より大幅に外れたら無視）
-    const limit = floorSize / 2 + 0.5;
-    if (Math.abs(lookAtPos.x) > limit || Math.abs(lookAtPos.z) > limit) return;
+    if (Math.abs(lookAtPos.x) > floorLimit || Math.abs(lookAtPos.z) > floorLimit) return;
 
-    // 視線方向：LookAt位置 → カメラ位置
-    const direction = new THREE.Vector3();
-    direction.subVectors(lookAtPos, camera.position).normalize();
-
-    // カメラ位置を LookAt から1m手前に設定（高さは固定）
+    const direction = new THREE.Vector3().subVectors(lookAtPos, camera.position).normalize();
     const newCamPos = lookAtPos.clone().addScaledVector(direction, -1);
     newCamPos.y = 2.5;
 
-    // アニメーション準備
     moveStart = performance.now() / 1000;
     moveFrom.copy(camera.position);
     moveTo.copy(newCamPos);
 
-    // ターゲット更新（次フレームで反映）
     controls.target.copy(lookAtPos);
   }
 });
+
+// --------------------------------------
+
+const lightOffset = new THREE.Vector3(0, 10, 7.5);
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+
+  if (moveStart !== null) {
+    const now = performance.now() / 1000;
+    const elapsed = now - moveStart;
+    const t = Math.min(elapsed / moveDuration, 1);
+
+    camera.position.lerpVectors(moveFrom, moveTo, t);
+    camera.lookAt(controls.target);
+
+    if (t >= 1) moveStart = null;
+  }
+
+  const lightPos = lightOffset.clone();
+  camera.localToWorld(lightPos);
+  light.position.copy(lightPos);
+  light.target.position.copy(controls.target);
+
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
