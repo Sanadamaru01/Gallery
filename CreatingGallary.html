@@ -18,15 +18,12 @@
 </head>
 <body>
 <script type="module">
-
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const GALLERY_WIDTH = 10;
 const GALLERY_HEIGHT = 2.5;
 const ivory = 0xfdf6e3;
-
-const imageFiles = ['photo1.jpg', 'photo2.jpg']; // 追加可能
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(ivory);
@@ -49,7 +46,7 @@ controls.minPolarAngle = Math.PI / 2;
 controls.maxPolarAngle = Math.PI / 2;
 controls.target.set(0, GALLERY_HEIGHT, 0);
 
-// フロア
+// --- ギャラリー構造 ---
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(GALLERY_WIDTH, GALLERY_WIDTH),
   new THREE.MeshStandardMaterial({ color: ivory })
@@ -57,34 +54,21 @@ const floor = new THREE.Mesh(
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 
-// 左右・前の壁
-const wallMaterial = new THREE.MeshStandardMaterial({ color: ivory });
+function createWall(width, height, x, y, z, rotationY = 0) {
+  const wall = new THREE.Mesh(
+    new THREE.PlaneGeometry(width, height),
+    new THREE.MeshStandardMaterial({ color: ivory })
+  );
+  wall.position.set(x, y, z);
+  wall.rotation.y = rotationY;
+  scene.add(wall);
+}
 
-const leftWall = new THREE.Mesh(
-  new THREE.PlaneGeometry(GALLERY_WIDTH, GALLERY_HEIGHT * 2),
-  wallMaterial
-);
-leftWall.rotation.y = Math.PI / 2;
-leftWall.position.set(-GALLERY_WIDTH / 2, GALLERY_HEIGHT, 0);
-scene.add(leftWall);
+createWall(GALLERY_WIDTH, GALLERY_HEIGHT * 2, 0, GALLERY_HEIGHT, -GALLERY_WIDTH / 2); // back
+createWall(GALLERY_WIDTH, GALLERY_HEIGHT * 2, 0, GALLERY_HEIGHT, GALLERY_WIDTH / 2, Math.PI); // front
+createWall(GALLERY_WIDTH, GALLERY_HEIGHT * 2, -GALLERY_WIDTH / 2, GALLERY_HEIGHT, 0, Math.PI / 2); // left
+createWall(GALLERY_WIDTH, GALLERY_HEIGHT * 2, GALLERY_WIDTH / 2, GALLERY_HEIGHT, 0, -Math.PI / 2); // right
 
-const rightWall = new THREE.Mesh(
-  new THREE.PlaneGeometry(GALLERY_WIDTH, GALLERY_HEIGHT * 2),
-  wallMaterial
-);
-rightWall.rotation.y = -Math.PI / 2;
-rightWall.position.set(GALLERY_WIDTH / 2, GALLERY_HEIGHT, 0);
-scene.add(rightWall);
-
-const frontWall = new THREE.Mesh(
-  new THREE.PlaneGeometry(GALLERY_WIDTH, GALLERY_HEIGHT * 2),
-  wallMaterial
-);
-frontWall.rotation.y = Math.PI;
-frontWall.position.set(0, GALLERY_HEIGHT, GALLERY_WIDTH / 2);
-scene.add(frontWall);
-
-// 天井
 const ceiling = new THREE.Mesh(
   new THREE.PlaneGeometry(GALLERY_WIDTH, GALLERY_WIDTH),
   new THREE.MeshStandardMaterial({ color: ivory })
@@ -93,160 +77,72 @@ ceiling.rotation.x = Math.PI / 2;
 ceiling.position.y = GALLERY_HEIGHT * 2;
 scene.add(ceiling);
 
-// === 後ろの壁の中央にドア開口 ===
-const wallWidth = GALLERY_WIDTH;
-const doorWidth = 1;
-const doorHeight = 2;
-const sideWallWidth = (wallWidth - doorWidth) / 2;
-
-// 左壁
-const backLeftWall = new THREE.Mesh(
-  new THREE.PlaneGeometry(sideWallWidth, GALLERY_HEIGHT * 2),
-  wallMaterial
-);
-backLeftWall.position.set(-doorWidth / 2 - sideWallWidth / 2, GALLERY_HEIGHT, -wallWidth / 2);
-scene.add(backLeftWall);
-
-// 右壁
-const backRightWall = new THREE.Mesh(
-  new THREE.PlaneGeometry(sideWallWidth, GALLERY_HEIGHT * 2),
-  wallMaterial
-);
-backRightWall.position.set(doorWidth / 2 + sideWallWidth / 2, GALLERY_HEIGHT, -wallWidth / 2);
-scene.add(backRightWall);
-
-// 上の梁部分
-const backTopWall = new THREE.Mesh(
-  new THREE.PlaneGeometry(doorWidth, GALLERY_HEIGHT * 2 - doorHeight),
-  wallMaterial
-);
-backTopWall.position.set(0, doorHeight + (GALLERY_HEIGHT * 2 - doorHeight) / 2, -wallWidth / 2);
-scene.add(backTopWall);
-
-// ドア枠（オプション）
-const doorFrame = new THREE.Mesh(
-  new THREE.PlaneGeometry(doorWidth, doorHeight),
-  new THREE.MeshStandardMaterial({ color: 0x555555, side: THREE.DoubleSide })
-);
-doorFrame.position.set(0, doorHeight / 2, -wallWidth / 2 + 0.01);
-scene.add(doorFrame);
-
-// ライト
+// --- ライティング ---
 const light = new THREE.DirectionalLight(0xffffff, 1.2);
+const ambientLight = new THREE.AmbientLight(0x888888, 0.5);
 scene.add(light);
 scene.add(light.target);
-
-const ambientLight = new THREE.AmbientLight(0x888888, 0.5);
 scene.add(ambientLight);
 
-// 画像読み込み
-const loader = new THREE.TextureLoader();
+// --- ドア ---
+const doorWidth = 1;
+const doorHeight = 2;
+const doorThickness = 0.1;
+let doorOpen = false;
 
-function createFrameWithImage(x, y, z, imagePath) {
-  loader.load(imagePath, (texture) => {
-    texture.encoding = THREE.sRGBEncoding;
-    const imgWidth = texture.image.width;
-    const imgHeight = texture.image.height;
-    const aspect = imgHeight / imgWidth;
-    const fixedLongSide = 3;
+const doorMaterial = new THREE.MeshBasicMaterial({ color: 0x8B4513 });
+const door = new THREE.Mesh(
+  new THREE.BoxGeometry(doorWidth, doorHeight, doorThickness),
+  doorMaterial
+);
+door.position.set(0, doorHeight / 2, -GALLERY_WIDTH / 2 + doorThickness / 2);
+scene.add(door);
 
-    let frameWidth, frameHeight;
-    if (imgWidth >= imgHeight) {
-      frameWidth = fixedLongSide;
-      frameHeight = fixedLongSide * aspect;
-    } else {
-      frameHeight = fixedLongSide;
-      frameWidth = fixedLongSide / aspect;
-    }
+// "EXIT" テキスト
+const canvas = document.createElement('canvas');
+canvas.width = 256;
+canvas.height = 128;
+const ctx = canvas.getContext('2d');
+ctx.fillStyle = '#8B4513';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+ctx.fillStyle = '#ffffff';
+ctx.font = 'bold 48px sans-serif';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('EXIT', canvas.width / 2, canvas.height / 2);
+const exitTexture = new THREE.CanvasTexture(canvas);
+exitTexture.encoding = THREE.sRGBEncoding;
 
-    const frame = new THREE.Mesh(
-      new THREE.BoxGeometry(frameWidth, frameHeight, 0.05),
-      new THREE.MeshStandardMaterial({ color: 0x333333 })
-    );
-    frame.position.set(x, y, z);
-    scene.add(frame);
+const exitLabel = new THREE.Mesh(
+  new THREE.PlaneGeometry(doorWidth * 0.8, doorHeight * 0.2),
+  new THREE.MeshBasicMaterial({ map: exitTexture, transparent: true })
+);
+exitLabel.position.set(0, doorHeight * 0.7, -GALLERY_WIDTH / 2 + 0.06);
+scene.add(exitLabel);
 
-    const panel = new THREE.Mesh(
-      new THREE.PlaneGeometry(frameWidth * 0.95, frameHeight * 0.95),
-      new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
-    );
-    panel.position.set(x, y, z + 0.03);
-    scene.add(panel);
-  });
-}
-
-// 画像配置
-const count = imageFiles.length;
-const spacePerImage = GALLERY_WIDTH / count;
-
-imageFiles.forEach((filename, index) => {
-  const x = -GALLERY_WIDTH / 2 + spacePerImage * (index + 0.5);
-  const z = -4.9;
-  createFrameWithImage(x, GALLERY_HEIGHT, z, './images/' + filename);
-});
-
-// === カメラ移動 ===
+// --- ドア開閉イベント ---
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
-let moveStart = null;
-let moveFrom = new THREE.Vector3();
-let moveTo = new THREE.Vector3();
-const moveDuration = 0.6;
-let isClick = false;
-let clickStartTime = 0;
-const floorSize = GALLERY_WIDTH;
-const floorLimit = floorSize / 2 - 1;
-
-window.addEventListener('mousedown', () => {
-  isClick = true;
-  clickStartTime = performance.now();
-});
-
-window.addEventListener('mousemove', () => {
-  if (performance.now() - clickStartTime > 200) isClick = false;
-});
-
-window.addEventListener('mouseup', (event) => {
-  if (!isClick) return;
-
+window.addEventListener('click', (event) => {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
-
-  const intersects = raycaster.intersectObject(floor);
+  const intersects = raycaster.intersectObject(door);
   if (intersects.length > 0) {
-    const clicked = intersects[0].point;
-    if (Math.abs(clicked.x) > floorLimit || Math.abs(clicked.z) > floorLimit) return;
-
-    const currentLookAtY = controls.target.y;
-    const lookAtPos = new THREE.Vector3(clicked.x, currentLookAtY, clicked.z);
-    controls.target.copy(lookAtPos);
-
-    const direction = new THREE.Vector3().subVectors(lookAtPos, camera.position).normalize();
-    const newCamPos = lookAtPos.clone().addScaledVector(direction, -1);
-    newCamPos.y = camera.position.y;
-
-    moveStart = performance.now() / 1000;
-    moveFrom.copy(camera.position);
-    moveTo.copy(newCamPos);
+    doorOpen = !doorOpen;
+    const angle = doorOpen ? Math.PI / 2 : 0;
+    door.rotation.y = angle;
+    exitLabel.rotation.y = angle;
+    door.position.x = doorOpen ? -doorWidth / 2 : 0;
+    exitLabel.position.x = door.position.x;
   }
 });
 
-// アニメーションループ
+// --- アニメーション ---
 const lightOffset = new THREE.Vector3(0, 10, 7.5);
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
-
-  if (moveStart !== null) {
-    const now = performance.now() / 1000;
-    const elapsed = now - moveStart;
-    const t = Math.min(elapsed / moveDuration, 1);
-
-    camera.position.lerpVectors(moveFrom, moveTo, t);
-    camera.lookAt(controls.target);
-    if (t >= 1) moveStart = null;
-  }
 
   const lightPos = lightOffset.clone();
   camera.localToWorld(lightPos);
@@ -257,12 +153,12 @@ function animate() {
 }
 animate();
 
+// --- リサイズ対応 ---
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
-
 </script>
 </body>
 </html>
