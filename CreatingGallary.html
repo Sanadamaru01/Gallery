@@ -59,14 +59,14 @@ controls.target.set(0, 2.5, 0);
 const ivory = 0xfdf6e3;
 
 const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(10, 10),
+  new THREE.PlaneGeometry(GALLERY_WIDTH, GALLERY_WIDTH),
   new THREE.MeshStandardMaterial({ color: ivory })
 );
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 
 const backWall = new THREE.Mesh(
-  new THREE.PlaneGeometry(10, 5),
+  new THREE.PlaneGeometry(GALLERY_WIDTH, 5),
   new THREE.MeshStandardMaterial({ color: ivory })
 );
 backWall.position.set(0, 2.5, -5);
