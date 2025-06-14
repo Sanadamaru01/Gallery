@@ -69,12 +69,12 @@ const backWall = new THREE.Mesh(
   new THREE.PlaneGeometry(GALLERY_WIDTH, 5),
   new THREE.MeshStandardMaterial({ color: ivory })
 );
-backWall.position.set(0, 2.5, -1*GALLERY_WIDTH);
+backWall.position.set(0, 2.5, -1*GALLERY_WIDTH/2);
 scene.add(backWall);
 
 const leftWall = backWall.clone();
 leftWall.rotation.y = Math.PI / 2;
-leftWall.position.set(-1*GALLERY_WIDTH, 2.5, 0);
+leftWall.position.set(-1*GALLERY_WIDTH/2, 2.5, 0);
 scene.add(leftWall);
 
 const rightWall = backWall.clone();
