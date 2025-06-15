@@ -21,24 +21,24 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// ギャラリーサイズ
-const GALLERY_WIDTH = 10;
-const GALLERY_DEPTH = 10;
-const GALLERY_HEIGHT = 5;
-const ivory = 0xfdf6e3;
+// 定数：ギャラリー壁の幅（部屋のサイズもこれに連動）
+const WALL_WIDTH = 12;
+const WALL_HEIGHT = 5;
+const IMAGE_HEIGHT_CENTER = 2.5;
 
-// 壁ごとの画像ファイル（順番: front, back, left, right）
+// 画像ファイル（6枚：Front・Left・Rightに2枚ずつ）
 const imageFiles = [
-  'photo1.jpg', 'photo2.jpg', 'photo3.jpg', 'photo4.jpg',
-  'photo5.jpg', 'photo6.jpg', 'photo7.jpg', 'photo8.jpg'
+  'photo1.jpg', 'photo2.jpg', // Front
+  'photo3.jpg', 'photo4.jpg', // Right
+  'photo5.jpg', 'photo6.jpg', // Left
 ];
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(ivory);
+scene.background = new THREE.Color(0xfdf6e3);
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 2.5, 1);
-camera.lookAt(0, 2.5, 0);
+camera.position.set(0, IMAGE_HEIGHT_CENTER, WALL_WIDTH / 2 - 1);
+camera.lookAt(0, IMAGE_HEIGHT_CENTER, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -52,131 +52,123 @@ controls.dampingFactor = 0.1;
 controls.rotateSpeed = 0.1;
 controls.minPolarAngle = Math.PI / 2;
 controls.maxPolarAngle = Math.PI / 2;
-controls.target.set(0, 2.5, 0);
+controls.target.set(0, IMAGE_HEIGHT_CENTER, 0);
 
-// --------------------------------------
-// 壁・床・天井
-// --------------------------------------
+// --- 床・壁・天井の作成 ---
+const ivory = 0xfdf6e3;
+
 const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(GALLERY_WIDTH, GALLERY_DEPTH),
+  new THREE.PlaneGeometry(WALL_WIDTH, WALL_WIDTH),
   new THREE.MeshStandardMaterial({ color: ivory })
 );
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 
-const wallMaterial = new THREE.MeshStandardMaterial({ color: ivory });
-
-function createWall(width, height, position, rotation) {
+function createWall(width, height, rotationY, posX, posZ) {
   const wall = new THREE.Mesh(
     new THREE.PlaneGeometry(width, height),
-    wallMaterial
+    new THREE.MeshStandardMaterial({ color: ivory })
   );
-  wall.position.set(...position);
-  if (rotation) wall.rotation.y = rotation;
+  wall.rotation.y = rotationY;
+  wall.position.set(posX, height / 2, posZ);
   scene.add(wall);
+  return wall;
 }
 
-createWall(GALLERY_WIDTH, GALLERY_HEIGHT, [0, GALLERY_HEIGHT / 2, -GALLERY_DEPTH / 2], 0);             // Back
-createWall(GALLERY_WIDTH, GALLERY_HEIGHT, [0, GALLERY_HEIGHT / 2, GALLERY_DEPTH / 2], Math.PI);        // Front
-createWall(GALLERY_DEPTH, GALLERY_HEIGHT, [-GALLERY_WIDTH / 2, GALLERY_HEIGHT / 2, 0], Math.PI / 2);   // Left
-createWall(GALLERY_DEPTH, GALLERY_HEIGHT, [GALLERY_WIDTH / 2, GALLERY_HEIGHT / 2, 0], -Math.PI / 2);   // Right
+const frontWall = createWall(WALL_WIDTH, WALL_HEIGHT, 0, 0, -WALL_WIDTH / 2);
+const rightWall = createWall(WALL_WIDTH, WALL_HEIGHT, Math.PI / 2, WALL_WIDTH / 2, 0);
+const backWall = createWall(WALL_WIDTH, WALL_HEIGHT, Math.PI, 0, WALL_WIDTH / 2); // ←画像なし
+const leftWall = createWall(WALL_WIDTH, WALL_HEIGHT, -Math.PI / 2, -WALL_WIDTH / 2, 0);
 
 const ceiling = new THREE.Mesh(
-  new THREE.PlaneGeometry(GALLERY_WIDTH, GALLERY_DEPTH),
-  wallMaterial
+  new THREE.PlaneGeometry(WALL_WIDTH, WALL_WIDTH),
+  new THREE.MeshStandardMaterial({ color: ivory })
 );
 ceiling.rotation.x = Math.PI / 2;
-ceiling.position.y = GALLERY_HEIGHT;
+ceiling.position.y = WALL_HEIGHT;
 scene.add(ceiling);
 
-// --------------------------------------
-// 光源
-// --------------------------------------
+// --- ライト ---
 const light = new THREE.DirectionalLight(0xffffff, 1.2);
 scene.add(light);
 scene.add(light.target);
-
 const ambientLight = new THREE.AmbientLight(0x888888, 0.5);
 scene.add(ambientLight);
 
-// --------------------------------------
-// 画像読み込み＆配置
-// --------------------------------------
+// --- 画像読み込み ---
 const loader = new THREE.TextureLoader();
-const fixedLongSide = 3;
-let imageIndex = 0;
 
-function createWallImages(count, totalLength, baseY, z, rotationY, isHorizontal) {
-  const space = totalLength / count;
+// 各壁に画像を貼る
+function addImagesToWall(imageList, wall, rotationY, posX, posZ) {
+  const count = imageList.length;
+  const spacing = WALL_WIDTH / (count + 1);
 
-  for (let i = 0; i < count; i++) {
-    if (imageIndex >= imageFiles.length) break;
-
-    const filename = imageFiles[imageIndex++];
+  imageList.forEach((filename, i) => {
     loader.load('./images/' + filename, (texture) => {
       texture.encoding = THREE.sRGBEncoding;
-      const iw = texture.image.width;
-      const ih = texture.image.height;
-      const aspect = ih / iw;
-      let frameWidth, frameHeight;
-      if (iw >= ih) {
-        frameWidth = fixedLongSide;
-        frameHeight = fixedLongSide * aspect;
+      const imgW = texture.image.width;
+      const imgH = texture.image.height;
+      const aspect = imgH / imgW;
+      const fixedLongSide = 3;
+
+      let frameW, frameH;
+      if (imgW >= imgH) {
+        frameW = fixedLongSide;
+        frameH = fixedLongSide * aspect;
       } else {
-        frameHeight = fixedLongSide;
-        frameWidth = fixedLongSide / aspect;
+        frameH = fixedLongSide;
+        frameW = fixedLongSide / aspect;
       }
 
-      const x = isHorizontal ? -totalLength / 2 + space * (i + 0.5) : z;
-      const zPos = isHorizontal ? z : -totalLength / 2 + space * (i + 0.5);
-
       const frame = new THREE.Mesh(
-        new THREE.BoxGeometry(frameWidth, frameHeight, 0.05),
+        new THREE.BoxGeometry(frameW, frameH, 0.05),
         new THREE.MeshStandardMaterial({ color: 0x333333 })
       );
-      frame.position.set(x, baseY, zPos);
-      if (rotationY) frame.rotation.y = rotationY;
-      scene.add(frame);
 
       const panel = new THREE.Mesh(
-        new THREE.PlaneGeometry(frameWidth * 0.95, frameHeight * 0.95),
+        new THREE.PlaneGeometry(frameW * 0.95, frameH * 0.95),
         new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
       );
-      panel.position.set(x, baseY, zPos + 0.03 * Math.cos(rotationY || 0));
-      if (rotationY) panel.rotation.y = rotationY;
+
+      const x = (i + 1) * spacing - WALL_WIDTH / 2;
+
+      let position = new THREE.Vector3();
+      if (wall === 'front') {
+        position.set(x, IMAGE_HEIGHT_CENTER, -WALL_WIDTH / 2 + 0.05);
+      } else if (wall === 'right') {
+        position.set(WALL_WIDTH / 2 - 0.05, IMAGE_HEIGHT_CENTER, -x);
+      } else if (wall === 'left') {
+        position.set(-WALL_WIDTH / 2 + 0.05, IMAGE_HEIGHT_CENTER, x);
+      }
+
+      frame.position.copy(position);
+      frame.rotation.y = rotationY;
+      scene.add(frame);
+
+      panel.position.copy(position);
+      panel.rotation.y = rotationY;
+      panel.position.z += 0.03 * Math.cos(rotationY);
+      panel.position.x += 0.03 * Math.sin(rotationY);
       scene.add(panel);
     });
-  }
+  });
 }
 
-// 各壁に配置（画像枚数 = 幅/3 の整数）
-const imagesPerWall = Math.floor(GALLERY_WIDTH / 3);
-const imagesPerSide = Math.floor(GALLERY_DEPTH / 3);
-const centerY = GALLERY_HEIGHT / 2;
+// 正面、右、左の壁に画像追加
+addImagesToWall(imageFiles.slice(0, 2), 'front', 0, 0, -WALL_WIDTH / 2);
+addImagesToWall(imageFiles.slice(2, 4), 'right', Math.PI / 2, WALL_WIDTH / 2, 0);
+addImagesToWall(imageFiles.slice(4, 6), 'left', -Math.PI / 2, -WALL_WIDTH / 2, 0);
 
-// front
-createWallImages(imagesPerWall, GALLERY_WIDTH, centerY, GALLERY_DEPTH / 2 - 0.05, Math.PI, true);
-// back
-createWallImages(imagesPerWall, GALLERY_WIDTH, centerY, -GALLERY_DEPTH / 2 + 0.05, 0, true);
-// left
-createWallImages(imagesPerSide, GALLERY_DEPTH, centerY, 0, Math.PI / 2, false);
-// right
-createWallImages(imagesPerSide, GALLERY_DEPTH, centerY, 0, -Math.PI / 2, false);
-
-// --------------------------------------
-// カメラ移動（床クリックでターゲット＆カメラ位置変更）
-// --------------------------------------
+// --- カメラ移動ロジック ---
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 let moveStart = null;
 let moveFrom = new THREE.Vector3();
 let moveTo = new THREE.Vector3();
 const moveDuration = 0.6;
-
 let isClick = false;
 let clickStartTime = 0;
-const floorLimitX = GALLERY_WIDTH / 2 - 1;
-const floorLimitZ = GALLERY_DEPTH / 2 - 1;
+const floorLimit = WALL_WIDTH / 2 - 1;
 
 window.addEventListener('mousedown', () => {
   isClick = true;
@@ -189,34 +181,27 @@ window.addEventListener('mousemove', () => {
 
 window.addEventListener('mouseup', (event) => {
   if (!isClick) return;
-
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
-
   const intersects = raycaster.intersectObject(floor);
   if (intersects.length > 0) {
     const clicked = intersects[0].point;
-    if (Math.abs(clicked.x) > floorLimitX || Math.abs(clicked.z) > floorLimitZ) return;
-
-    const currentY = controls.target.y;
-    const lookAtPos = new THREE.Vector3(clicked.x, currentY, clicked.z);
+    if (Math.abs(clicked.x) > floorLimit || Math.abs(clicked.z) > floorLimit) return;
+    const lookAtPos = new THREE.Vector3(clicked.x, controls.target.y, clicked.z);
     controls.target.copy(lookAtPos);
-
     const direction = new THREE.Vector3().subVectors(lookAtPos, camera.position).normalize();
     const newCamPos = lookAtPos.clone().addScaledVector(direction, -1);
     newCamPos.y = camera.position.y;
-
     moveStart = performance.now() / 1000;
     moveFrom.copy(camera.position);
     moveTo.copy(newCamPos);
   }
 });
 
-// --------------------------------------
-// アニメーション
-// --------------------------------------
+// --- アニメーション ---
 const lightOffset = new THREE.Vector3(0, 10, 7.5);
+
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
