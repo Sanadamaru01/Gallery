@@ -21,6 +21,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+// ギャラリーサイズ
+const GALLERY_WIDTH = 10;
+const GALLERY_HEIGHT = 2.5;
+const ivory = 0xfdf6e3;
+
 // シーン・カメラ・レンダラー
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xfdf6e3);
@@ -50,11 +55,6 @@ scene.add(light);
 scene.add(light.target);
 const ambient = new THREE.AmbientLight(0x888888, 0.5);
 scene.add(ambient);
-
-// ギャラリーサイズ
-const GALLERY_WIDTH = 10;
-const GALLERY_HEIGHT = 2.5;
-const ivory = 0xfdf6e3;
 
 // 床・壁・天井
 const floor = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), new THREE.MeshStandardMaterial({ color: ivory }));
@@ -141,10 +141,10 @@ function placeImagesOnWall(imagePaths, wallWidth, wallY, wallZ, wallX, rotationY
 }
 
 // ---------- 壁ごとの画像ファイル ----------
-const imagesFront = ['front1.jpg', 'front2.jpg'];
-const imagesBack  = ['back1.jpg', 'back2.jpg'];
-const imagesLeft  = ['left1.jpg', 'left2.jpg'];
-const imagesRight = ['right1.jpg', 'right2.jpg'];
+const imagesFront = ['photo1.jpg', 'photo2.jpg'];
+const imagesBack  = ['photo3.jpg', 'photo4.jpg'];
+const imagesLeft  = ['photo5.jpg', 'photo6.jpg'];
+const imagesRight = ['photo7.jpg', 'photo8.jpg'];
 
 // ---------- 各壁に画像を貼る ----------
 placeImagesOnWall(imagesFront, GALLERY_WIDTH, GALLERY_HEIGHT, 4.9, 0, Math.PI, 'x');         // Front
