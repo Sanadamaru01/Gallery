@@ -27,9 +27,8 @@ const ivory = 0xfdf6e3;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(ivory);
 
-// カメラとコントロール
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, GALLERY_HEIGHT, 1);
+camera.position.set(0, GALLERY_HEIGHT, GALLERY_WIDTH / 2 + 1);
 camera.lookAt(0, GALLERY_HEIGHT, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -46,12 +45,10 @@ controls.minPolarAngle = Math.PI / 2;
 controls.maxPolarAngle = Math.PI / 2;
 controls.target.set(0, GALLERY_HEIGHT, 0);
 
-// ライティング
 const light = new THREE.DirectionalLight(0xffffff, 1.2);
 const ambientLight = new THREE.AmbientLight(0x888888, 0.5);
 scene.add(light, light.target, ambientLight);
 
-// 床・壁・天井
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(GALLERY_WIDTH, GALLERY_WIDTH),
   new THREE.MeshStandardMaterial({ color: ivory })
@@ -68,10 +65,10 @@ function createWall(width, height, x, y, z, rotationY = 0) {
   wall.rotation.y = rotationY;
   scene.add(wall);
 }
-createWall(GALLERY_WIDTH, GALLERY_HEIGHT * 2, 0, GALLERY_HEIGHT, -GALLERY_WIDTH / 2); // back
-createWall(GALLERY_WIDTH, GALLERY_HEIGHT * 2, 0, GALLERY_HEIGHT, GALLERY_WIDTH / 2, Math.PI); // front
-createWall(GALLERY_WIDTH, GALLERY_HEIGHT * 2, -GALLERY_WIDTH / 2, GALLERY_HEIGHT, 0, Math.PI / 2); // left
-createWall(GALLERY_WIDTH, GALLERY_HEIGHT * 2, GALLERY_WIDTH / 2, GALLERY_HEIGHT, 0, -Math.PI / 2); // right
+createWall(GALLERY_WIDTH, GALLERY_HEIGHT * 2, 0, GALLERY_HEIGHT, -GALLERY_WIDTH / 2); // Back
+createWall(GALLERY_WIDTH, GALLERY_HEIGHT * 2, 0, GALLERY_HEIGHT, GALLERY_WIDTH / 2, Math.PI); // Front
+createWall(GALLERY_WIDTH, GALLERY_HEIGHT * 2, -GALLERY_WIDTH / 2, GALLERY_HEIGHT, 0, Math.PI / 2); // Left
+createWall(GALLERY_WIDTH, GALLERY_HEIGHT * 2, GALLERY_WIDTH / 2, GALLERY_HEIGHT, 0, -Math.PI / 2); // Right
 
 const ceiling = new THREE.Mesh(
   new THREE.PlaneGeometry(GALLERY_WIDTH, GALLERY_WIDTH),
@@ -81,7 +78,7 @@ ceiling.rotation.x = Math.PI / 2;
 ceiling.position.y = GALLERY_HEIGHT * 2;
 scene.add(ceiling);
 
-// ドア
+// ドア（Back）
 const doorWidth = 1;
 const doorHeight = 2;
 const doorThickness = 0.1;
@@ -95,7 +92,6 @@ const door = new THREE.Mesh(
 door.position.set(0, doorHeight / 2, -GALLERY_WIDTH / 2 + doorThickness / 2);
 scene.add(door);
 
-// EXIT テキスト
 const canvas = document.createElement('canvas');
 canvas.width = 256;
 canvas.height = 128;
@@ -117,7 +113,6 @@ const exitLabel = new THREE.Mesh(
 exitLabel.position.set(0, doorHeight * 0.7, door.position.z + 0.06);
 scene.add(exitLabel);
 
-// ドアクリックイベント
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 window.addEventListener('click', (event) => {
@@ -135,13 +130,11 @@ window.addEventListener('click', (event) => {
   }
 });
 
-// ------------------ 写真配置 ------------------
+// 写真
 const imageFiles = [
   'photo1.jpg',
   'photo2.jpg',
-  // 追加可
 ];
-
 const loader = new THREE.TextureLoader();
 
 function createFrameWithImage(x, y, z, imagePath) {
@@ -181,7 +174,7 @@ const count = imageFiles.length;
 const spacePerImage = GALLERY_WIDTH / count;
 imageFiles.forEach((filename, index) => {
   const x = -GALLERY_WIDTH / 2 + spacePerImage * (index + 0.5);
-  const z = -GALLERY_WIDTH / 2 + 0.1;
+  const z = GALLERY_WIDTH / 2 - 0.1; // Front wall
   createFrameWithImage(x, GALLERY_HEIGHT, z, './images/' + filename);
 });
 
@@ -190,12 +183,10 @@ const lightOffset = new THREE.Vector3(0, 10, 7.5);
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
-
   const lightPos = lightOffset.clone();
   camera.localToWorld(lightPos);
   light.position.copy(lightPos);
   light.target.position.copy(controls.target);
-
   renderer.render(scene, camera);
 }
 animate();
