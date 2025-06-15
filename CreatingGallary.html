@@ -18,16 +18,15 @@
 </head>
 <body>
 <script type="module">
-
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// === ギャラリーサイズ ===
-const WALL_WIDTH = 10;    // 壁の幅（X/Z方向）
-const WALL_HEIGHT = 5;    // 壁の高さ
-const GALLERY_HEIGHT = 2.5;  // 写真のY中心高さ
+// ギャラリーサイズ
+const WALL_WIDTH = 10;
+const WALL_HEIGHT = 5;
+const GALLERY_HEIGHT = 2.5;
 
-// === 画像ファイル ===
+// 画像ファイル名
 const imageFiles = [
   'photo1.jpg', 'photo2.jpg',
   'photo3.jpg', 'photo4.jpg',
@@ -35,7 +34,6 @@ const imageFiles = [
   'photo7.jpg', 'photo8.jpg'
 ];
 
-// === シーン準備 ===
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xfdf6e3);
 
@@ -59,14 +57,7 @@ controls.target.set(0, 2.5, 0);
 
 const ivory = 0xfdf6e3;
 
-// === 壁と床・天井 ===
-function createWall(w, h, color = ivory) {
-  return new THREE.Mesh(
-    new THREE.PlaneGeometry(w, h),
-    new THREE.MeshStandardMaterial({ color })
-  );
-}
-
+// 各面（床・壁・天井）を作成
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(WALL_WIDTH, WALL_WIDTH),
   new THREE.MeshStandardMaterial({ color: ivory })
@@ -74,69 +65,167 @@ const floor = new THREE.Mesh(
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 
-const ceiling = createWall(WALL_WIDTH, WALL_WIDTH);
+const ceiling = floor.clone();
 ceiling.rotation.x = Math.PI / 2;
 ceiling.position.y = WALL_HEIGHT;
 scene.add(ceiling);
 
-const frontWall = createWall(WALL_WIDTH, WALL_HEIGHT);
-frontWall.rotation.y = Math.PI;
-frontWall.position.z = WALL_WIDTH / 2;
-frontWall.position.y = WALL_HEIGHT / 2;
-scene.add(frontWall);
-
-const backWall = createWall(WALL_WIDTH, WALL_HEIGHT);
-backWall.rotation.y = 0;
-backWall.position.z = -WALL_WIDTH / 2;
-backWall.position.y = WALL_HEIGHT / 2;
+const backWall = new THREE.Mesh(
+  new THREE.PlaneGeometry(WALL_WIDTH, WALL_HEIGHT),
+  new THREE.MeshStandardMaterial({ color: ivory })
+);
+backWall.position.set(0, WALL_HEIGHT / 2, -WALL_WIDTH / 2);
 scene.add(backWall);
 
-const leftWall = createWall(WALL_WIDTH, WALL_HEIGHT);
+const frontWall = backWall.clone();
+frontWall.rotation.y = Math.PI;
+frontWall.position.set(0, WALL_HEIGHT / 2, WALL_WIDTH / 2);
+scene.add(frontWall);
+
+const leftWall = backWall.clone();
 leftWall.rotation.y = Math.PI / 2;
-leftWall.position.x = -WALL_WIDTH / 2;
-leftWall.position.y = WALL_HEIGHT / 2;
+leftWall.position.set(-WALL_WIDTH / 2, WALL_HEIGHT / 2, 0);
 scene.add(leftWall);
 
-const rightWall = createWall(WALL_WIDTH, WALL_HEIGHT);
+const rightWall = backWall.clone();
 rightWall.rotation.y = -Math.PI / 2;
-rightWall.position.x = WALL_WIDTH / 2;
-rightWall.position.y = WALL_HEIGHT / 2;
+rightWall.position.set(WALL_WIDTH / 2, WALL_HEIGHT / 2, 0);
 scene.add(rightWall);
 
-// === ライト ===
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
-scene.add(directionalLight);
-scene.add(directionalLight.target);
-
+// ライト設定
+const light = new THREE.DirectionalLight(0xffffff, 1.2);
+scene.add(light);
+scene.add(light.target);
 const ambientLight = new THREE.AmbientLight(0x888888, 0.5);
 scene.add(ambientLight);
 
-// === 写真配置用 ===
+// テクスチャ読み込みと画像配置
 const loader = new THREE.TextureLoader();
-let imageIndex = 0;
 
-function addImagesToWall(count, axis, fixedCoord, isFront) {
+// 壁ごとの画像配置設定
+const wallData = [
+  { name: 'front',  z: WALL_WIDTH / 2 - 0.1, rotY: Math.PI, axis: 'x',  origin: -WALL_WIDTH / 2, normal: 'z', startIndex: 0 },
+  { name: 'left',   x: -WALL_WIDTH / 2 + 0.1, rotY: Math.PI / 2, axis: 'z', origin: WALL_WIDTH / 2, normal: 'x', startIndex: 2 },
+  { name: 'right',  x: WALL_WIDTH / 2 - 0.1, rotY: -Math.PI / 2, axis: 'z', origin: -WALL_WIDTH / 2, normal: 'x', startIndex: 4 }
+];
+
+const fixedLongSide = 3;
+
+wallData.forEach((wall, w) => {
+  const count = imageFiles.length >= wall.startIndex + 2 ? 2 : 1;
   const spacing = WALL_WIDTH / (count + 1);
-  for (let i = 0; i < count; i++) {
-    if (imageIndex >= imageFiles.length) return;
 
-    const file = imageFiles[imageIndex++];
-    loader.load('./images/' + file, (texture) => {
-      const aspect = texture.image.height / texture.image.width;
-      const frameWidth = 2.5;
-      const frameHeight = frameWidth * aspect;
+  for (let i = 0; i < count; i++) {
+    const imagePath = './images/' + imageFiles[wall.startIndex + i];
+
+    loader.load(imagePath, (texture) => {
+      const iw = texture.image.width;
+      const ih = texture.image.height;
+      const aspect = ih / iw;
+
+      let fw, fh;
+      if (iw >= ih) {
+        fw = fixedLongSide;
+        fh = fixedLongSide * aspect;
+      } else {
+        fh = fixedLongSide;
+        fw = fixedLongSide / aspect;
+      }
+
+      const fx = wall.axis === 'x' ? wall.origin + spacing * (i + 1) : wall.x;
+      const fz = wall.axis === 'z' ? wall.origin - spacing * (i + 1) : wall.z;
+      const fy = GALLERY_HEIGHT;
 
       const frame = new THREE.Mesh(
-        new THREE.BoxGeometry(frameWidth, frameHeight, 0.05),
+        new THREE.BoxGeometry(fw, fh, 0.05),
         new THREE.MeshStandardMaterial({ color: 0x333333 })
       );
+      frame.position.set(fx || 0, fy, fz || 0);
+      frame.rotation.y = wall.rotY;
+      scene.add(frame);
+
       const panel = new THREE.Mesh(
-        new THREE.PlaneGeometry(frameWidth * 0.95, frameHeight * 0.95),
+        new THREE.PlaneGeometry(fw * 0.95, fh * 0.95),
         new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
       );
+      panel.position.set(fx || 0, fy, (fz || 0) + 0.03 * Math.sign(Math.cos(wall.rotY)));
+      panel.rotation.y = wall.rotY;
+      scene.add(panel);
+    });
+  }
+});
 
-      let x = 0, z = 0;
-      if (axis === 'x') {
-        x = -WALL_WIDTH / 2 + spacing * (i + 1);
-        z = fixedCoord;
-     
+// カメラ移動用ロジック（オプション）
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let moveStart = null;
+let moveFrom = new THREE.Vector3();
+let moveTo = new THREE.Vector3();
+const moveDuration = 0.6;
+let isClick = false;
+let clickStartTime = 0;
+
+window.addEventListener('mousedown', () => {
+  isClick = true;
+  clickStartTime = performance.now();
+});
+window.addEventListener('mousemove', () => {
+  if (performance.now() - clickStartTime > 200) isClick = false;
+});
+window.addEventListener('mouseup', (event) => {
+  if (!isClick) return;
+
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObject(floor);
+  if (intersects.length > 0) {
+    const clicked = intersects[0].point;
+    if (Math.abs(clicked.x) > WALL_WIDTH / 2 - 1 || Math.abs(clicked.z) > WALL_WIDTH / 2 - 1) return;
+
+    const targetY = controls.target.y;
+    const lookAtPos = new THREE.Vector3(clicked.x, targetY, clicked.z);
+    controls.target.copy(lookAtPos);
+
+    const dir = new THREE.Vector3().subVectors(lookAtPos, camera.position).normalize();
+    const newCamPos = lookAtPos.clone().addScaledVector(dir, -1);
+    newCamPos.y = camera.position.y;
+
+    moveStart = performance.now() / 1000;
+    moveFrom.copy(camera.position);
+    moveTo.copy(newCamPos);
+  }
+});
+
+// アニメーションループ
+const lightOffset = new THREE.Vector3(0, 10, 7.5);
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+
+  if (moveStart !== null) {
+    const now = performance.now() / 1000;
+    const elapsed = now - moveStart;
+    const t = Math.min(elapsed / moveDuration, 1);
+    camera.position.lerpVectors(moveFrom, moveTo, t);
+    camera.lookAt(controls.target);
+    if (t >= 1) moveStart = null;
+  }
+
+  const lightPos = lightOffset.clone();
+  camera.localToWorld(lightPos);
+  light.position.copy(lightPos);
+  light.target.position.copy(controls.target);
+
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
