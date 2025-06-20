@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Room 1 Gallery</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style> body { margin: 0; overflow: hidden; } </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.175.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.175.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+<script type="module">
+  import { loadConfig } from '../../js/configLoader.js';
+  import { initGallery } from '../../js/gallery.js';
+
+  const roomPath = './';
+  Promise.all([
+    loadConfig(`${roomPath}config.json`),
+    fetch(`${roomPath}images.json`).then(r => r.json())
+  ]).then(([config, images]) => {
+    initGallery(images, config, `${roomPath}images/`);
+  });
+</script>
+</body>
+</html>
