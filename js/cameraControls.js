@@ -10,7 +10,7 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
   controls.enablePan = false;
   controls.mouseButtons.RIGHT = null;
   controls.dampingFactor = 0.1;
-  controls.rotateSpeed = 0.1;
+  controls.rotateSpeed = -0.1;
   controls.minPolarAngle = Math.PI / 2;
   controls.maxPolarAngle = Math.PI / 2;
   controls.target.set(0, controlsTargetY, 0);
