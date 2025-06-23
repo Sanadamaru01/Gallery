@@ -4,7 +4,71 @@
   <meta charset="UTF-8" />
   <title>Room 1 Gallery</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style> body { margin: 0; overflow: hidden; } </style>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #000;
+      color: #e0e0e0;
+    }
+    /* タイトルバー常時表示 */
+    #titleBar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+      z-index: 100;
+      user-select: none;
+      padding: 0 16px;
+      box-sizing: border-box;
+    }
+    /* 前の部屋・次の部屋リンク */
+    #titleBar a {
+      color: #ccc;
+      text-decoration: none;
+      font-weight: normal;
+      font-size: 1rem;
+      padding: 8px 12px;
+      transition: color 0.3s;
+      user-select: auto;
+    }
+    #titleBar a:hover {
+      color: white;
+    }
+    #prevRoom {
+      position: absolute;
+      left: 16px;
+    }
+    #nextRoom {
+      position: absolute;
+      right: 16px;
+    }
+    /* タイトルテキストは中央寄せ */
+    #titleText {
+      flex-grow: 1;
+      text-align: center;
+      pointer-events: none; /* タイトルテキストにマウスイベント通さない */
+    }
+    /* 3Dギャラリーのcanvas調整 */
+    canvas {
+      position: fixed;
+      top: 60px; /* タイトルバー分だけ下げる */
+      left: 0;
+      width: 100% !important;
+      height: calc(100% - 60px) !important;
+      z-index: 0;
+      display: block;
+    }
+  </style>
   <script type="importmap">
     {
       "imports": {
@@ -15,17 +79,26 @@
   </script>
 </head>
 <body>
-<script type="module">
-  import { loadConfig } from '../../js/configLoader.js';
-  import { initGallery } from '../../js/gallery.js';
+  <!-- 常時表示タイトルバー -->
+  <div id="titleBar">
+    <a id="prevRoom" href="../room0/index.html">&lt; 前の部屋</a>
+    <div id="titleText">Room 1 Gallery</div>
+    <a id="nextRoom" href="../room2/index.html">次の部屋 &gt;</a>
+  </div>
 
-  const roomPath = './';
-  Promise.all([
-    loadConfig(`${roomPath}config.json`),
-    fetch(`${roomPath}images.json`).then(r => r.json())
-  ]).then(([config, images]) => {
-    initGallery(images, config, `${roomPath}images/`);
-  });
-</script>
+  <!-- 3Dギャラリー用のcanvasはThree.jsが自動生成します -->
+
+  <script type="module">
+    import { loadConfig } from '../../js/configLoader.js';
+    import { initGallery } from '../../js/gallery.js';
+
+    const roomPath = './';
+    Promise.all([
+      loadConfig(`${roomPath}config.json`),
+      fetch(`${roomPath}images.json`).then(r => r.json())
+    ]).then(([config, images]) => {
+      initGallery(images, config, `${roomPath}images/`);
+    });
+  </script>
 </body>
 </html>

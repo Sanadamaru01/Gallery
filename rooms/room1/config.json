@@ -2,5 +2,10 @@
   "wallWidth": 10,
   "wallHeight": 5,
   "fixedLongSide": 3,
-  "backgroundColor": "#fdf6e3"
+  "backgroundColor": "#fdf6e3",
+  "texturePaths": {
+    "wall": "./textures/Wall.jpg",
+    "floor": "./textures/Floor.jpg",
+    "ceiling": "./textures/Ceiling.jpg"
+  }
 }
