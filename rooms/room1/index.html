@@ -5,6 +5,10 @@
   <title>Room 1 Gallery</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    :root {
+      --header-height: 60px;
+    }
+
     body {
       margin: 0;
       overflow: hidden;
@@ -12,13 +16,13 @@
       background-color: #000;
       color: #e0e0e0;
     }
-    /* タイトルバー常時表示 */
+
     #titleBar {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      height: 60px;
+      height: var(--header-height);
       background-color: rgba(0, 0, 0, 0.7);
       display: flex;
       align-items: center;
@@ -31,7 +35,7 @@
       padding: 0 16px;
       box-sizing: border-box;
     }
-    /* 前の部屋・次の部屋リンク */
+
     #titleBar a {
       color: #ccc;
       text-decoration: none;
@@ -41,34 +45,38 @@
       transition: color 0.3s;
       user-select: auto;
     }
+
     #titleBar a:hover {
       color: white;
     }
+
     #prevRoom {
       position: absolute;
       left: 16px;
     }
+
     #nextRoom {
       position: absolute;
       right: 16px;
     }
-    /* タイトルテキストは中央寄せ */
+
     #titleText {
       flex-grow: 1;
       text-align: center;
-      pointer-events: none; /* タイトルテキストにマウスイベント通さない */
+      pointer-events: none;
     }
-    /* 3Dギャラリーのcanvas調整 */
+
     canvas {
       position: fixed;
-      top: 60px; /* タイトルバー分だけ下げる */
+      top: var(--header-height);
       left: 0;
       width: 100% !important;
-      height: calc(100% - 60px) !important;
+      height: calc(100% - var(--header-height)) !important;
       z-index: 0;
       display: block;
     }
   </style>
+
   <script type="importmap">
     {
       "imports": {
@@ -78,21 +86,81 @@
     }
   </script>
 </head>
+
 <body>
-  <!-- 常時表示タイトルバー -->
-  <div id="titleBar">
-    <!--
+  <div id="titleBar" data-height="60">
     <a id="prevRoom" href="../room0/index.html">&lt; 前の部屋</a>
-     -->
-    <div id="titleText">Room 1 Gallery</div>
-    <!--
+    <div id="titleText">読み込み中...</div>
     <a id="nextRoom" href="../room2/index.html">次の部屋 &gt;</a>
-     -->
   </div>
 
-  <!-- 3Dギャラリー用のcanvasはThree.jsが自動生成します -->
-
   <script type="module">
+    const scriptUrl = 'https://script.google.com/macros/s/AKfycbxIxTmMa6VdE1uvKeXOWyYrBIk4a5eDBvZjQYCt_HDEsF0z2fxmu6JBhMHB4g4c4v-S/exec';
+    const currentRoomId = 'room1';
+
+    async function fetchWithRetry(url, retries = 3, delay = 1000) {
+      for (let i = 0; i < retries; i++) {
+        try {
+          const fullUrl = `${url}?t=${Date.now()}`; // キャッシュ回避
+          const res = await fetch(fullUrl);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json = await res.json();
+          if (!Array.isArray(json)) throw new Error("JSON形式が不正です");
+          return json;
+        } catch (e) {
+          console.warn(`Fetch失敗 (${i + 1}/${retries}) 回目:`, e.message);
+          if (i < retries - 1) await new Promise(r => setTimeout(r, delay));
+        }
+      }
+      throw new Error('ルーム情報の取得に繰り返し失敗しました');
+    }
+
+    async function checkRoomAvailabilityAndSetTitle() {
+      try {
+        const rooms = await fetchWithRetry(scriptUrl);
+        const room = rooms.find(r => r.roomId === currentRoomId);
+
+        if (!room) {
+          alert('この部屋の情報が見つかりません。');
+          window.location.href = '../../index.html';
+          return;
+        }
+
+        const now = new Date();
+        const start = new Date(room.startDate);
+        const end = new Date(room.endDate);
+
+        if (isNaN(start) || isNaN(end)) {
+          alert('日付データが不正です。');
+          window.location.href = '../../index.html';
+          return;
+        }
+
+        if (now < start || now > end) {
+          alert(`この展示は公開期間外です。\n公開期間：${room.startDate} ～ ${room.endDate}`);
+          window.location.href = '../../index.html';
+          return;
+        }
+
+        // ✅ タイトルに反映
+        const titleTextEl = document.getElementById('titleText');
+        if (titleTextEl && room.title) {
+          titleTextEl.textContent = room.title;
+          document.title = room.title;
+        }
+
+        console.log(`[${currentRoomId}] 公開中：${room.title}`);
+
+      } catch (error) {
+        console.error('checkRoomAvailability(): エラー発生', error);
+        alert('展示情報の取得に失敗しました。');
+        window.location.href = '../../index.html';
+      }
+    }
+
+    // ✅ 公開チェック＆タイトル取得後にギャラリー初期化
+    await checkRoomAvailabilityAndSetTitle();
+
     import { loadConfig } from '../../js/configLoader.js';
     import { initGallery } from '../../js/gallery.js';
 
