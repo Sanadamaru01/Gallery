@@ -36,7 +36,7 @@ export function buildRoom(scene, config) {
   const ceilTex = texturePaths?.ceiling ? textureLoader.load(texturePaths.ceiling) : null;
   if (ceilTex) {
     ceilTex.wrapS = ceilTex.wrapT = THREE.RepeatWrapping;
-    ceilTex.repeat.set(4, 4);
+    ceilTex.repeat.set(2, 2);
   }
   const ceilMat = ceilTex
     ? new THREE.MeshStandardMaterial({ map: ceilTex })
