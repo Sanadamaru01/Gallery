@@ -16,7 +16,7 @@ export function buildRoom(scene, config) {
   const wallTex = texturePaths?.wall ? textureLoader.load(texturePaths.wall) : null;
   if (wallTex) {
     wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
-    wallTex.repeat.set(4, 2);
+    wallTex.repeat.set(2, 1);
   }
   const wallMat = wallTex
     ? new THREE.MeshStandardMaterial({ map: wallTex, side: THREE.DoubleSide })
@@ -26,7 +26,7 @@ export function buildRoom(scene, config) {
   const floorTex = texturePaths?.floor ? textureLoader.load(texturePaths.floor) : null;
   if (floorTex) {
     floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
-    floorTex.repeat.set(8, 8);
+    floorTex.repeat.set(4, 4);
   }
   const floorMat = floorTex
     ? new THREE.MeshStandardMaterial({ map: floorTex })
@@ -36,7 +36,7 @@ export function buildRoom(scene, config) {
   const ceilTex = texturePaths?.ceiling ? textureLoader.load(texturePaths.ceiling) : null;
   if (ceilTex) {
     ceilTex.wrapS = ceilTex.wrapT = THREE.RepeatWrapping;
-    ceilTex.repeat.set(4, 2);
+    ceilTex.repeat.set(4, 4);
   }
   const ceilMat = ceilTex
     ? new THREE.MeshStandardMaterial({ map: ceilTex })
