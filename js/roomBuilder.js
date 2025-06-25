@@ -26,7 +26,7 @@ export function buildRoom(scene, config) {
   const floorTex = texturePaths?.floor ? textureLoader.load(texturePaths.floor) : null;
   if (floorTex) {
     floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
-    floorTex.repeat.set(4, 4);
+    floorTex.repeat.set(1, 1);
   }
   const floorMat = floorTex
     ? new THREE.MeshStandardMaterial({ map: floorTex })
