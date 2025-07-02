@@ -44,7 +44,12 @@ function createRoomCard(roomId, config, isOpen) {
   const status = document.createElement('p');
   status.textContent = isOpen ? '🔓 公開中' : '🔒 非公開';
 
-  info.append(title, dates, status);
+  const desc = document.createElement('p');
+  desc.textContent = config.description || '';
+  desc.style.fontSize = '0.85rem';
+  desc.style.marginTop = '0.4rem';
+  
+  info.append(title, dates, status, desc);
   link.append(thumb, info);
   container.appendChild(link);
 
