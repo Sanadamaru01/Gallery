@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>Room 0 Gallery</title>
+  <title>Room Gallery</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
@@ -75,6 +75,17 @@
       z-index: 0;
       display: block;
     }
+
+    .message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #ccc;
+      font-size: 1.5rem;
+      text-align: center;
+      z-index: 200;
+    }
   </style>
 
   <script type="importmap">
@@ -94,51 +105,6 @@
     <a id="nextRoom" href="../room1/index.html">次の部屋 &gt;</a>
   </div>
 
-  <script type="module">
-    /*
-    // Google連携部分 コメントアウト中
-    const scriptUrl = 'https://script.google.com/macros/s/AKfycbxIxTmMa6VdE1uvKeXOWyYrBIk4a5eDBvZjQYCt_HDEsF0z2fxmu6JBhMHB4g4v-S/exec';
-    const currentRoomId = 'room0';
-
-    async function fetchWithRetry(url, retries = 3, delay = 1000) {
-      for (let i = 0; i < retries; i++) {
-        try {
-          const fullUrl = `${url}?t=${Date.now()}`; // キャッシュ回避
-          const res = await fetch(fullUrl);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const json = await res.json();
-          if (!Array.isArray(json)) throw new Error("JSON形式が不正です");
-          return json;
-        } catch (e) {
-          console.warn(`Fetch失敗 (${i + 1}/${retries}) 回目:`, e.message);
-          if (i < retries - 1) await new Promise(r => setTimeout(r, delay));
-        }
-      }
-      throw new Error('ルーム情報の取得に繰り返し失敗しました');
-    }
-
-    async function checkRoomAvailabilityAndSetTitle() {
-      // 空関数にして処理スキップ
-      return;
-    }
-
-    // await checkRoomAvailabilityAndSetTitle();
-    */
-
-    // タイトルを固定表示に切り替え
-    document.getElementById('titleText').textContent = 'Room 0 Gallery';
-    document.title = 'Room 0 Gallery';
-
-    import { loadConfig } from '../../js/configLoader.js';
-    import { initGallery } from '../../js/gallery.js';
-
-    const roomPath = './';
-    Promise.all([
-      loadConfig(`${roomPath}config.json`),
-      fetch(`${roomPath}images.json`).then(r => r.json())
-    ]).then(([config, images]) => {
-      initGallery(images, config, `${roomPath}images/`);
-    });
-  </script>
+  <script type="module" src="../../js/main.js"></script>
 </body>
 </html>
