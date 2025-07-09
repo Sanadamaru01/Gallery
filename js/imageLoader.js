@@ -40,7 +40,9 @@ export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixed
 // Three.js上に画像を貼る
 export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wallHeight) {
   const GALLERY_HEIGHT = wallHeight / 2;
-  scene.userData.clickablePanels = [];
+
+  // 上書きではなく、既存があれば維持するように
+  scene.userData.clickablePanels = scene.userData.clickablePanels || [];
 
   const wallData = {
     front: { axis: 'x', origin: -wallWidth / 2, z: wallWidth / 2 - 0.1, rotY: Math.PI },
@@ -78,6 +80,7 @@ export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wa
       panel.position.add(offsetVec);
       scene.add(panel);
 
+      // ← クリック対象として追加（既存を消さないように）
       scene.userData.clickablePanels.push(panel);
     });
   });

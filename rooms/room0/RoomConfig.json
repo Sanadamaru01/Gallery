@@ -2,15 +2,15 @@
   "roomTitle": "Shin Photo Gallery",
   "startDate": "2025-06-25",
   "endDate": "2099-01-01",
-  "description": "このギャラリーは、ギャラリーオーナーの作品をサンプルとして展示しています。",
   "wallWidth": 10,
   "wallHeight": 5,
   "fixedLongSide": 3,
   "backgroundColor": "#fdf6e3",
   "texturePaths": {
-    "wall": "./textures/Wall.jpg",
-    "floor": "./textures/Floor.jpg",
-    "ceiling": "./textures/Ceiling.jpg"
+    "wall": "./textures/Wall.webp",
+    "floor": "./textures/Floor.webp",
+    "ceiling": "./textures/Ceiling.webp",
+    "Door": "./textures/Door.webp"
   },
   "images": [
     "photo1.webp",
