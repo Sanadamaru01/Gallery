@@ -25,6 +25,11 @@ export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixed
 
         // Textureも並列ロード
         loader.load(imageBasePath + src, (texture) => {
+          // r175用色空間・フィルター設定
+          texture.colorSpace = THREE.SRGBColorSpace;
+          texture.minFilter = THREE.LinearFilter;
+          texture.magFilter = THREE.LinearFilter;
+          texture.generateMipmaps = false;
           resolve({ fw, fh, texture, src });
         });
       };
@@ -41,7 +46,7 @@ export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixed
 export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wallHeight) {
   const GALLERY_HEIGHT = wallHeight / 2;
 
-  // 上書きではなく、既存があれば維持するように
+  // 既存クリック対象を維持
   scene.userData.clickablePanels = scene.userData.clickablePanels || [];
 
   const wallData = {
@@ -80,7 +85,7 @@ export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wa
       panel.position.add(offsetVec);
       scene.add(panel);
 
-      // ← クリック対象として追加（既存を消さないように）
+      // クリック対象に追加
       scene.userData.clickablePanels.push(panel);
     });
   });

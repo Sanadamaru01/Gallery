@@ -13,12 +13,23 @@ export async function buildRoom(scene, config) {
   // マテリアル共通関数
   const makeMaterial = (texPath, fallbackColor, repeatX = 1, repeatY = 1) => {
     if (texPath) {
-      const tex = textureLoader.load(texPath);
+      const tex = textureLoader.load(texPath, (loadedTex) => {
+        console.log(`✅ Texture loaded from: ${texPath}`);
+        console.log('→ colorSpace:', loadedTex.colorSpace);
+        console.log('→ minFilter:', loadedTex.minFilter);
+        console.log('→ magFilter:', loadedTex.magFilter);
+        console.log('→ mipmaps:', loadedTex.generateMipmaps);
+      });
+
+      tex.colorSpace = THREE.SRGBColorSpace;
       tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
       tex.repeat.set(repeatX, repeatY);
-      return new THREE.MeshStandardMaterial({ map: tex, side: THREE.DoubleSide });
+      tex.generateMipmaps = false;
+      tex.minFilter = THREE.LinearFilter;
+  
+      return new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
     }
-    return new THREE.MeshStandardMaterial({ color: new THREE.Color(fallbackColor), side: THREE.DoubleSide });
+    return new THREE.MeshBasicMaterial({ color: new THREE.Color(fallbackColor), side: THREE.DoubleSide });
   };
 
   const wallMat = makeMaterial(texturePaths?.wall, backgroundColor, 2, 1);
@@ -151,7 +162,7 @@ addDecorativeBand(-doorHeight / 2 + 0.75);
         textureLoader.load(texturePaths.Door, resolve, undefined, reject);
       });
       tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
-      tex.encoding = THREE.sRGBEncoding;
+      tex.colorSpace = THREE.SRGBColorSpace;
       const mat = new THREE.MeshStandardMaterial({ map: tex, side: THREE.DoubleSide });
       door = createDoor(mat);
     } catch {
