@@ -1,5 +1,5 @@
 {
-  "roomTitle": "Room2 Gallery",
+  "roomTitle": "Room3 Gallery",
   "startDate": "2025-06-25",
   "endDate": "2025-07-31",
   "wallWidth": 10,
@@ -7,9 +7,9 @@
   "fixedLongSide": 3,
   "backgroundColor": "#fdf6e3",
   "texturePaths": {
-    "wall": "./textures/Wall2.webp",
-    "floor": "./textures/Floor2.webp",
-    "ceiling": "./textures/Ceiling2.webp",
+    "wall": "./textures/Wall3.webp",
+    "floor": "./textures/Floor3.webp",
+    "ceiling": "./textures/Ceiling3.webp",
     "Door": "./textures/Door.webp"
   },
   "images": [
