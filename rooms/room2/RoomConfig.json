@@ -7,10 +7,10 @@
   "fixedLongSide": 3,
   "backgroundColor": "#fdf6e3",
   "texturePaths": {
-    "wall": "./textures/Wall2.webp",
-    "floor": "./textures/Floor2.webp",
-    "ceiling": "./textures/Ceiling2.webp",
-    "Door": "./textures/Door.webp"
+    "wall": "../shared/textures/Wall2.webp",
+    "floor": "../shared/textures/Floor2.webp",
+    "ceiling": "../shared/textures/Ceiling2.webp",
+    "Door": "../shared/textures/Door.webp"
   },
   "images": [
     "photo1.webp",
