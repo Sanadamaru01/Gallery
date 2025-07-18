@@ -123,7 +123,8 @@ export function planWallLayouts(imageSizes, wallWidth, minMargin, minSpacing) {
     };
 
     for (let i = 0; i < count; i++) {
-      const idx = imageIndex + i;
+      //const idx = imageIndex + i;
+      const idx = imageIndex + (wallName === 'front' ? count - 1 - i : i);
       const { fw, fh } = imageSizes[idx];
 
       wallPlan.images.push({
