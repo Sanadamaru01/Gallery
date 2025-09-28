@@ -13,13 +13,10 @@
     "Door": "../shared/textures/Door.webp"
   },
   "images": [
-    "photo1.webp",
-    "photo2.webp",
-    "photo4.webp",
-    "photo3.webp",
-    "photo5.webp",
-    "photo6.webp",
-    "photo7.webp",
-    "photo8.webp"
+    "01.jpg",
+    "02.jpg",
+    "03.jpg",
+    "04.jpg",
+    "motion.gif"
   ]
 }
