@@ -24,38 +24,21 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
   let isClick = false;
   let clickStartTime = 0;
 
-  // パネルの前後移動のための記録
   let lastPanel = null;
   let lastCameraPos = new THREE.Vector3();
   let lastCameraTarget = new THREE.Vector3();
-
-  // カメラが移動中に向く方向（通常は移動前に見ていた方向）
   let currentLookAt = new THREE.Vector3();
-
-  // 後退時に移動完了後に変更すべき注視点
   let pendingTarget = null;
 
-  // -----------------------------
-  // カメラ移動関数
-  // -----------------------------
-  function moveCameraTo(lookAtPos, panelSize = null, isReturn = false) {
-    // panelSize がある場合は距離を自動調整
-    let distance = 0.5; // デフォルト
-    if (panelSize) {
-      // 長辺を基準に距離を計算
-      distance = Math.max(panelSize.width, panelSize.height) * 1.2;
-    }
-
-    const direction = new THREE.Vector3().subVectors(camera.position, lookAtPos).normalize();
+  function moveCameraTo(lookAtPos, offsetDirection, distance = 0.5, isReturn = false) {
+    const direction = offsetDirection.clone().normalize();
     const newCamPos = lookAtPos.clone().addScaledVector(direction, distance);
     newCamPos.y = camera.position.y;
 
     if (isReturn) {
-      // 後退：今の向きを保って戻り、到着後に注視点変更
       currentLookAt.copy(controls.target);
       pendingTarget = lookAtPos.clone();
     } else {
-      // 前進：先に注視点を設定し、その方向を向いて移動
       controls.target.copy(lookAtPos);
       currentLookAt.copy(lookAtPos);
       pendingTarget = null;
@@ -66,9 +49,6 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
     moveTo.copy(newCamPos);
   }
 
-  // -----------------------------
-  // マウスイベント
-  // -----------------------------
   window.addEventListener('mousedown', () => {
     isClick = true;
     clickStartTime = performance.now();
@@ -85,21 +65,18 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
 
-    // パネルクリック処理
     const panels = scene.userData.clickablePanels || [];
     const hits = raycaster.intersectObjects(panels);
     if (hits.length > 0) {
       const panel = hits[0].object;
 
       if (lastPanel === panel) {
-        // 同じパネルを再クリック → 後退
-        moveCameraTo(lastCameraTarget, null, true);
+        moveCameraTo(lastCameraTarget, new THREE.Vector3(0,0,1), 0, true);
         moveTo.copy(lastCameraPos);
         lastPanel = null;
         return;
       }
 
-      // 新しいパネルをクリック → 前進
       lastPanel = panel;
       lastCameraPos.copy(camera.position);
       lastCameraTarget.copy(controls.target);
@@ -107,14 +84,18 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
       const panelCenter = new THREE.Vector3();
       panel.getWorldPosition(panelCenter);
 
-      // サイズ情報を userData から取得できる前提
-      const panelSize = panel.userData.size || null;
+      const panelNormal = new THREE.Vector3(0, 0, -1).applyQuaternion(panel.quaternion).normalize();
 
-      moveCameraTo(panelCenter, panelSize, false);
+      // userData.size から距離を決める
+      const panelSize = panel.userData.size || { width: 1, height: 1 };
+      const distance = Math.max(panelSize.width, panelSize.height) * 1.2;
+
+      const lookAtPos = panelCenter.clone().addScaledVector(panelNormal, -1);
+      moveCameraTo(lookAtPos, panelNormal, distance, false);
       return;
     }
 
-    // 床クリック処理
+    // 床クリック
     const floorHits = raycaster.intersectObject(floor);
     if (floorHits.length > 0) {
       const clicked = floorHits[0].point;
@@ -123,23 +104,17 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
 
       const lookAtPos = new THREE.Vector3(clicked.x, controls.target.y, clicked.z);
       const offsetDir = new THREE.Vector3().subVectors(lookAtPos, camera.position).normalize();
-      moveCameraTo(lookAtPos, null);
+      moveCameraTo(lookAtPos, offsetDir, -0.5);
       lastPanel = null;
     }
   });
 
-  // -----------------------------
-  // リサイズ対応
-  // -----------------------------
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
-  // -----------------------------
-  // 描画ループ用 animateCamera
-  // -----------------------------
   function animateCamera() {
     if (moveStart !== null) {
       const now = performance.now() / 1000;
@@ -162,8 +137,5 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
     }
   }
 
-  return {
-    controls,
-    animateCamera,
-  };
+  return { controls, animateCamera };
 }
