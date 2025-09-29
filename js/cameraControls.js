@@ -96,7 +96,7 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
 
       // ここで画像サイズに応じて距離を決定
       const panelSize = panel.userData.size || { width: 1, height: 1 };
-      const distance = Math.max(panelSize.width, panelSize.height) * 1.2;
+      const distance = -Math.max(panelSize.width, panelSize.height) * 1.2;
 
       moveCameraTo(panelCenter, panelNormal, distance); // 前進
       return;
