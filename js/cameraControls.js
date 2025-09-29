@@ -100,7 +100,7 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
       const panelHeight = panel.userData.size?.height || 1;  // パネル高さ
       const fixedLongSide = 3;                               // 基準高さ
       const baseDistance = -0.5;                              // 元の距離
-      const safetyMargin = -1.2;                              // マージン
+      const safetyMargin = -1.5;                              // マージン
       const distance = baseDistance * (panelHeight / fixedLongSide) + safetyMargin;
 
       console.log(distance, panelHeight)
