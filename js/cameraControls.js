@@ -94,9 +94,15 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
         .applyQuaternion(panel.quaternion)
         .normalize();
 
-      // ここで画像サイズに応じて距離を決定
-      const panelSize = panel.userData.size || { width: 1, height: 1 };
-      const distance = -Math.max(panelSize.width, panelSize.height) * 1.2;
+      // =============================================
+      // 距離計算（安全マージン付き）
+      // =============================================
+      const panelHeight = panel.userData.size?.height || 1;  // パネル高さ
+      const fixedLongSide = 3;                               // 基準高さ
+      const baseDistance = 0.5;                              // 元の距離
+      const safetyMargin = 0.1;                              // 安全マージン
+      const distance = baseDistance * (panelHeight / fixedLongSide) + safetyMargin;
+      // =============================================
 
       moveCameraTo(panelCenter, panelNormal, distance); // 前進
       return;
