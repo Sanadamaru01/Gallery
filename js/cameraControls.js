@@ -30,8 +30,11 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
   let currentLookAt = new THREE.Vector3();
   let pendingTarget = null;
 
-  function moveCameraTo(lookAtPos, offsetDirection, distance = 0.5, isReturn = false) {
-    const direction = offsetDirection.clone().normalize();
+  function moveCameraTo(lookAtPos, offsetDirection = null, distance = 0.5, isReturn = false) {
+    const direction = offsetDirection
+      ? offsetDirection.clone().normalize()
+      : new THREE.Vector3().subVectors(camera.position, lookAtPos).normalize();
+
     const newCamPos = lookAtPos.clone().addScaledVector(direction, distance);
     newCamPos.y = camera.position.y;
 
@@ -67,75 +70,17 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
 
     const panels = scene.userData.clickablePanels || [];
     const hits = raycaster.intersectObjects(panels);
+
     if (hits.length > 0) {
       const panel = hits[0].object;
 
       if (lastPanel === panel) {
-        moveCameraTo(lastCameraTarget, new THREE.Vector3(0,0,1), 0, true);
+        // 同じパネル再クリック → 後退
+        moveCameraTo(lastCameraTarget, null, 0, true);
         moveTo.copy(lastCameraPos);
         lastPanel = null;
         return;
       }
 
+      // 新しいパネルクリック → 前進
       lastPanel = panel;
-      lastCameraPos.copy(camera.position);
-      lastCameraTarget.copy(controls.target);
-
-      const panelCenter = new THREE.Vector3();
-      panel.getWorldPosition(panelCenter);
-
-      const panelNormal = new THREE.Vector3(0, 0, -1).applyQuaternion(panel.quaternion).normalize();
-
-      // userData.size から距離を決める
-      const panelSize = panel.userData.size || { width: 1, height: 1 };
-      const distance = Math.max(panelSize.width, panelSize.height) * 1.2;
-
-      const lookAtPos = panelCenter.clone().addScaledVector(panelNormal, -1);
-      moveCameraTo(lookAtPos, panelNormal, distance, false);
-      return;
-    }
-
-    // 床クリック
-    const floorHits = raycaster.intersectObject(floor);
-    if (floorHits.length > 0) {
-      const clicked = floorHits[0].point;
-      const wallLimit = scene.userData.wallWidth / 2 - 0.5;
-      if (Math.abs(clicked.x) > wallLimit || Math.abs(clicked.z) > wallLimit) return;
-
-      const lookAtPos = new THREE.Vector3(clicked.x, controls.target.y, clicked.z);
-      const offsetDir = new THREE.Vector3().subVectors(lookAtPos, camera.position).normalize();
-      moveCameraTo(lookAtPos, offsetDir, -0.5);
-      lastPanel = null;
-    }
-  });
-
-  window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
-
-  function animateCamera() {
-    if (moveStart !== null) {
-      const now = performance.now() / 1000;
-      const elapsed = now - moveStart;
-      const t = Math.min(elapsed / moveDuration, 1);
-
-      camera.position.lerpVectors(moveFrom, moveTo, t);
-      camera.lookAt(currentLookAt);
-
-      if (t >= 1) {
-        moveStart = null;
-        if (pendingTarget) {
-          controls.target.copy(pendingTarget);
-          camera.lookAt(pendingTarget);
-          pendingTarget = null;
-        } else {
-          camera.lookAt(controls.target);
-        }
-      }
-    }
-  }
-
-  return { controls, animateCamera };
-}
