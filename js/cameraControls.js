@@ -102,6 +102,8 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
       const baseDistance = -0.5;                              // 元の距離
       const safetyMargin = -0.1;                              // 安全マージン
       const distance = baseDistance * (panelHeight / fixedLongSide) + safetyMargin;
+
+      console.log(distance, panelHeight)
       // =============================================
 
       moveCameraTo(panelCenter, panelNormal, distance); // 前進
