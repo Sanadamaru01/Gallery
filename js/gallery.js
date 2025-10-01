@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { buildRoom } from './roomBuilder.js';
 import { setupCameraControls } from './cameraControls.js';
 import { loadImages } from './imageLoader.js';
-import { createCaptionPanel } from './captionHelper.js'; // ← 追加
 
 export async function initGallery(imageFiles, config, imageBasePath) {
   const {
@@ -35,9 +34,6 @@ export async function initGallery(imageFiles, config, imageBasePath) {
   renderer.colorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NoToneMapping;
   renderer.toneMappingExposure = 1.0;
-  console.log('✅ Renderer colorSpace:', renderer.colorSpace);
-  console.log('✅ ToneMapping:', renderer.toneMapping);
-  console.log('✅ ToneMappingExposure:', renderer.toneMappingExposure);
 
   document.body.appendChild(renderer.domElement);
 
@@ -63,18 +59,8 @@ export async function initGallery(imageFiles, config, imageBasePath) {
     camera, renderer, GALLERY_HEIGHT, floor, scene
   );
 
-  // 🖼️ 画像読み込み・配置（キャプション追加対応）
+  // 🖼️ 画像読み込み・配置（キャプションは imageLoader 内で生成済み）
   const loadedMeshes = await loadImages(scene, imageFiles, WALL_WIDTH, WALL_HEIGHT, fixedLongSide, imageBasePath);
-
-  // 🔹 キャプションパネルを生成して画像メッシュに追加
-  loadedMeshes.forEach((mesh, idx) => {
-    const imgData = imageFiles[idx];
-    if (imgData.title && imgData.caption) {
-      const aspect = mesh.geometry.parameters.width / mesh.geometry.parameters.height;
-      const captionPanel = createCaptionPanel(mesh, imgData.title, imgData.caption, aspect);
-      mesh.userData.captionPanel = captionPanel;
-    }
-  });
 
   function getViewportHeight() {
     return document.documentElement.clientHeight;
