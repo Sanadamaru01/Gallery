@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { buildRoom } from './roomBuilder.js';
 import { setupCameraControls } from './cameraControls.js';
 import { loadImages } from './imageLoader.js';
+import { createCaptionPanel } from './captionHelper.js'; // ← 追加
 
 export async function initGallery(imageFiles, config, imageBasePath) {
   const {
@@ -38,41 +39,43 @@ export async function initGallery(imageFiles, config, imageBasePath) {
   console.log('✅ ToneMapping:', renderer.toneMapping);
   console.log('✅ ToneMappingExposure:', renderer.toneMappingExposure);
 
-
   document.body.appendChild(renderer.domElement);
 
-  // ✅ ドアが正しく生成された後で取得
   const { floor, door } = await buildRoom(scene, config);
 
-  // 🔗 ドアにクリック処理を登録
   door.userData.onClick = () => {
     console.log('✅ ドアがクリックされました');
     window.location.href = '../../index.html';
   };
   
-  // 🔁 子要素にもクリック処理を委譲
   door.traverse((child) => {
     if (child !== door) {
       child.userData.onClick = door.userData.onClick;
     }
   });
 
-
-  // 💡 照明
   const light = new THREE.DirectionalLight(0xffffff, 1.2);
   const ambientLight = new THREE.AmbientLight(0x888888, 0.5);
   scene.add(light, light.target, ambientLight);
   const lightOffset = new THREE.Vector3(0, 10, 7.5);
 
-  // 🎥 カメラコントロール
   const { controls, animateCamera } = setupCameraControls(
     camera, renderer, GALLERY_HEIGHT, floor, scene
   );
 
-  // 🖼️ 画像読み込み・配置
-  await loadImages(scene, imageFiles, WALL_WIDTH, WALL_HEIGHT, fixedLongSide, imageBasePath);
+  // 🖼️ 画像読み込み・配置（キャプション追加対応）
+  const loadedMeshes = await loadImages(scene, imageFiles, WALL_WIDTH, WALL_HEIGHT, fixedLongSide, imageBasePath);
 
-  // 📏 ビューポート
+  // 🔹 キャプションパネルを生成して画像メッシュに追加
+  loadedMeshes.forEach((mesh, idx) => {
+    const imgData = imageFiles[idx];
+    if (imgData.title && imgData.caption) {
+      const aspect = mesh.geometry.parameters.width / mesh.geometry.parameters.height;
+      const captionPanel = createCaptionPanel(mesh, imgData.title, imgData.caption, aspect);
+      mesh.userData.captionPanel = captionPanel;
+    }
+  });
+
   function getViewportHeight() {
     return document.documentElement.clientHeight;
   }
@@ -80,7 +83,6 @@ export async function initGallery(imageFiles, config, imageBasePath) {
     return getViewportHeight() - HEADER_HEIGHT;
   }
 
-  // 📐 リサイズ対応
   function onWindowResize() {
     const width = window.innerWidth;
     const height = getViewportHeightMinusHeader();
@@ -94,11 +96,18 @@ export async function initGallery(imageFiles, config, imageBasePath) {
   });
   onWindowResize();
 
-  // 🌀 描画ループ
   function animate() {
     requestAnimationFrame(animate);
     controls.update();
     animateCamera();
+
+    // 🔹 カメラとの距離でキャプション表示制御
+    loadedMeshes.forEach(mesh => {
+      if (mesh.userData.captionPanel) {
+        const distance = camera.position.distanceTo(mesh.position);
+        mesh.userData.captionPanel.visible = distance < 3;
+      }
+    });
 
     const lightPos = lightOffset.clone();
     camera.localToWorld(lightPos);
@@ -108,7 +117,6 @@ export async function initGallery(imageFiles, config, imageBasePath) {
     renderer.render(scene, camera);
   }
 
-  // 🖱️ クリック処理
   window.addEventListener('click', (event) => {
     const mouse = new THREE.Vector2(
       (event.clientX / window.innerWidth) * 2 - 1,
