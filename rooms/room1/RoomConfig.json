@@ -12,7 +12,32 @@
     "ceiling": "../shared/textures/CeilingGray.webp",
     "Door": "../shared/textures/Door.webp"
   },
-  "images": [
+    "images": [
+    {
+      "file": "01.jpg",
+      "title": "Title1",
+      "caption": "Caption1"
+    },
+    {
+      "file": "02.jpg",
+      "title": "Title2",
+      "caption": "Caption2"
+    },
+    {
+      "file": "03.jpg",
+      "title": "Title3",
+      "caption": "Caption3"
+    },
+    {
+      "file": "04.jpg",
+      "title": "Title4",
+      "caption": "Caption4"
+    },
+    {
+      "file": "information.jpg",
+      "title": "ご案内",
+      "caption": "実際の絵を見てみませんか"
+    }
     "01.jpg",
     "02.jpg",
     "03.jpg",
