@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createCaptionPanel } from './captionHelper.js'; // ← 追加
 
 // メイン関数：画像読み込みと計画適用
 export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixedLongSide = 3, imageBasePath) {
@@ -7,7 +8,8 @@ export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixed
   const loader = new THREE.TextureLoader();
 
   // 画像情報のプリロード（サイズ取得＋テクスチャ化を並列処理）
-  const imageMetaList = await Promise.all(imageFiles.map(src => {
+  const imageMetaList = await Promise.all(imageFiles.map(srcObj => {
+    const src = typeof srcObj === 'string' ? srcObj : srcObj.file;
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
@@ -23,14 +25,12 @@ export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixed
           fw = fixedLongSide * (iw / ih);
         }
 
-        // Textureも並列ロード
         loader.load(imageBasePath + src, (texture) => {
-          // r175用色空間・フィルター設定
           texture.colorSpace = THREE.SRGBColorSpace;
           texture.minFilter = THREE.LinearFilter;
           texture.magFilter = THREE.LinearFilter;
           texture.generateMipmaps = false;
-          resolve({ fw, fh, texture, src });
+          resolve({ fw, fh, texture, src, title: srcObj.title, caption: srcObj.caption });
         });
       };
       img.src = imageBasePath + src;
@@ -39,14 +39,12 @@ export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixed
 
   const imageSizes = imageMetaList.map(item => ({ fw: item.fw, fh: item.fh }));
   const layoutPlan = planWallLayouts(imageSizes, wallWidth, MIN_MARGIN, MIN_SPACING);
-  applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wallHeight);
+  return applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wallHeight); // ← メッシュ配列を返す
 }
 
 // Three.js上に画像を貼る
 export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wallHeight) {
   const GALLERY_HEIGHT = wallHeight / 2;
-
-  // 既存クリック対象を維持
   scene.userData.clickablePanels = scene.userData.clickablePanels || [];
 
   const wallData = {
@@ -54,6 +52,8 @@ export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wa
     right: { axis: 'z', origin: wallWidth / 2, x: -wallWidth / 2 + 0.1, rotY: Math.PI / 2 },
     left:  { axis: 'z', origin: wallWidth / 2, x:  wallWidth / 2 - 0.1, rotY: -Math.PI / 2 }
   };
+
+  const meshes = [];
 
   layoutPlan.forEach(plan => {
     const wall = wallData[plan.wall];
@@ -85,13 +85,22 @@ export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wa
       panel.position.add(offsetVec);
       scene.add(panel);
 
-      // クリック時に距離計算に使うサイズ情報を userData に追加
-      panel.userData.size = { width: img.fw, height: img.fh };
-
       // クリック対象に追加
+      panel.userData.size = { width: img.fw, height: img.fh };
       scene.userData.clickablePanels.push(panel);
+
+      // 🔹 キャプションパネル生成
+      if (meta.title && meta.caption) {
+        const aspect = img.fw / img.fh;
+        const captionPanel = createCaptionPanel(panel, meta.title, meta.caption, aspect);
+        panel.userData.captionPanel = captionPanel;
+      }
+
+      meshes.push(panel);
     });
   });
+
+  return meshes; // ← 画像メッシュ配列を返す
 }
 
 // 壁幅・画像サイズから貼り付けプランを作成
