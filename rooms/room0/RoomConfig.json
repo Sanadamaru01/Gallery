@@ -13,13 +13,44 @@
     "Door": "../shared/textures/Door.webp"
   },
   "images": [
-    "photo1.webp",
-    "photo2.webp",
-    "photo4.webp",
-    "photo3.webp",
-    "photo5.webp",
-    "photo6.webp",
-    "photo7.webp",
-    "photo8.webp"
-  ]
+    {
+      "file": "photo1.webp",
+      "title": "Title1",
+      "caption": "Caption1"
+    },
+    {
+      "file": "photo2.webp",
+      "title": "Title2",
+      "caption": "Caption2"
+    },
+    {
+      "file": "photo4.webp",
+      "title": "Title4",
+      "caption": "Caption4"
+    },
+    {
+      "file": "photo3.webp",
+      "title": "Title3",
+      "caption": "Caption43"
+    },
+    {
+      "file": "photo5.webp",
+      "title": "Title5",
+      "caption": "Caption5"
+    },
+    {
+      "file": "photo6.webp",
+      "title": "Title6",
+      "caption": "Caption6"
+    },
+    {
+      "file": "photo7.webp",
+      "title": "Title7",
+      "caption": "Caption7"
+    },
+    {
+      "file": "photo8.webp",
+      "title": "Title8",
+      "caption": "Caption8"
+    }
 }
