@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createCaptionPanel } from './captionHelper.js'; // ← 追加
+import { createCaptionPanel } from './captionHelper.js'; // キャプション用
 
 // メイン関数：画像読み込みと計画適用
 export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixedLongSide = 3, imageBasePath) {
@@ -7,7 +7,7 @@ export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixed
   const MIN_SPACING = 0.5;
   const loader = new THREE.TextureLoader();
 
-  // 画像情報のプリロード（サイズ取得＋テクスチャ化を並列処理）
+  // 画像情報のプリロード（サイズ取得＋テクスチャ化）
   const imageMetaList = await Promise.all(imageFiles.map(srcObj => {
     const src = typeof srcObj === 'string' ? srcObj : srcObj.file;
     return new Promise((resolve) => {
@@ -39,10 +39,10 @@ export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixed
 
   const imageSizes = imageMetaList.map(item => ({ fw: item.fw, fh: item.fh }));
   const layoutPlan = planWallLayouts(imageSizes, wallWidth, MIN_MARGIN, MIN_SPACING);
-  return applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wallHeight); // ← メッシュ配列を返す
+  return applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wallHeight); // メッシュ配列を返す
 }
 
-// Three.js上に画像を貼る
+// Three.js上に画像とキャプションを貼る
 export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wallHeight) {
   const GALLERY_HEIGHT = wallHeight / 2;
   scene.userData.clickablePanels = scene.userData.clickablePanels || [];
@@ -89,7 +89,7 @@ export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wa
       panel.userData.size = { width: img.fw, height: img.fh };
       scene.userData.clickablePanels.push(panel);
 
-      // 🔹 キャプションパネル生成
+      // 🔹 キャプションパネル生成（画像のすぐ下に配置）
       if (meta.title && meta.caption) {
         const aspect = img.fw / img.fh;
         const captionPanel = createCaptionPanel(panel, meta.title, meta.caption, aspect);
@@ -100,7 +100,7 @@ export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wa
     });
   });
 
-  return meshes; // ← 画像メッシュ配列を返す
+  return meshes; // 画像メッシュ配列を返す
 }
 
 // 壁幅・画像サイズから貼り付けプランを作成
@@ -129,13 +129,11 @@ export function planWallLayouts(imageSizes, wallWidth, minMargin, minSpacing) {
     const extraSpace = availableWidth - totalWidth;
     let offset = minMargin + extraSpace / 2;
 
-    const wallPlan = {
-      wall: wallName,
-      images: []
-    };
+    const wallPlan = { wall: wallName, images: [] };
 
     for (let i = 0; i < count; i++) {
-      const idx = imageIndex + (wallName === 'front' ? count - 1 - i : i);
+      // 左壁だけ右から表示
+      const idx = wallName === 'left' ? imageIndex + (count - 1 - i) : imageIndex + i;
       const { fw, fh } = imageSizes[idx];
 
       wallPlan.images.push({
