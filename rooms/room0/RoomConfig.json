@@ -2,7 +2,7 @@
   "roomTitle": "Shin Photo Gallery",
   "startDate": "2025-06-25",
   "endDate": "2099-01-01",
-  "wallWidth": 10,
+  "wallWidth": 15,
   "wallHeight": 5,
   "fixedLongSide": 3,
   "backgroundColor": "#fdf6e3",
@@ -14,44 +14,49 @@
   },
   "images": [
     {
-      "file": "photo1.webp",
+      "file": "G-1.jpg",
       "title": "Title1",
       "caption": "Caption1"
     },
     {
-      "file": "photo2.webp",
+      "file": "G-2.jpg",
       "title": "Title2",
       "caption": "Caption2"
     },
     {
-      "file": "photo4.webp",
+      "file": "G-3.jpg",
+      "title": "Title3",
+      "caption": "Caption3"
+    },
+    {
+      "file": "G-4.jpg",
       "title": "Title4",
       "caption": "Caption4"
     },
     {
-      "file": "photo3.webp",
-      "title": "Title3",
-      "caption": "Caption43"
-    },
-    {
-      "file": "photo5.webp",
+      "file": "G-5.jpg",
       "title": "Title5",
       "caption": "Caption5"
     },
     {
-      "file": "photo6.webp",
+      "file": "G-6.jpg",
       "title": "Title6",
       "caption": "Caption6"
     },
     {
-      "file": "photo7.webp",
+      "file": "G-7.jpg",
       "title": "Title7",
       "caption": "Caption7"
     },
     {
-      "file": "photo8.webp",
+      "file": "G-8.jpg",
       "title": "Title8",
       "caption": "Caption8"
+    },
+    {
+      "file": "G-9.jpg",
+      "title": "Title9",
+      "caption": "Caption9"
     }
   ]
 }
