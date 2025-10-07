@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { createCaptionPanel } from './captionHelper.js'; // キャプション生成
+import { createCaptionPanel } from './captionHelper.js'; // キャプション生成関数
 
-// メイン関数：画像読み込みと計画適用
+// メイン関数：画像読み込みと壁への配置
 export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixedLongSide = 3, imageBasePath) {
   const MIN_MARGIN = 1.0;
   const MIN_SPACING = 0.5;
@@ -42,7 +42,7 @@ export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixed
   return applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wallHeight); // メッシュ配列を返す
 }
 
-// Three.js上に画像を貼る
+// Three.js上に画像とキャプションを貼る
 export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wallHeight) {
   const GALLERY_HEIGHT = wallHeight / 2;
   scene.userData.clickablePanels = scene.userData.clickablePanels || [];
@@ -61,11 +61,12 @@ export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wa
       const meta = imageMetaList[img.index];
       const texture = meta.texture;
 
+      // 壁の座標に応じた位置
       const fx = wall.axis === 'x' ? wall.origin + img.offset : wall.x;
       const fz = wall.axis === 'z' ? wall.origin - img.offset : wall.z;
       const fy = GALLERY_HEIGHT;
 
-      // フレーム
+      // フレーム作成
       const frame = new THREE.Mesh(
         new THREE.BoxGeometry(img.fw, img.fh, 0.05),
         new THREE.MeshStandardMaterial({ color: 0x333333 })
@@ -87,11 +88,11 @@ export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wa
       panel.position.add(offsetVec);
       scene.add(panel);
 
-      // クリック対象に追加
+      // クリック対象登録
       panel.userData.size = { width: img.fw, height: img.fh };
       scene.userData.clickablePanels.push(panel);
 
-      // キャプションパネル生成
+      // キャプション生成（画像と同じループ内で作る）
       if (meta.title && meta.caption) {
         const aspect = img.fw / img.fh;
         const captionPanel = createCaptionPanel(panel, meta.title, meta.caption, aspect);
@@ -102,7 +103,7 @@ export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wa
     });
   });
 
-  return meshes; // 画像メッシュ配列を返す
+  return meshes;
 }
 
 // 壁幅・画像サイズから貼り付けプランを作成
@@ -126,7 +127,6 @@ export function planWallLayouts(imageSizes, wallWidth, minMargin, minSpacing) {
 
     if (count === 0) continue;
 
-    const totalSpacing = minSpacing * (count - 1);
     const totalWidth = totalImageWidth;
     const extraSpace = availableWidth - totalWidth;
     let offset = minMargin + extraSpace / 2;
@@ -134,10 +134,15 @@ export function planWallLayouts(imageSizes, wallWidth, minMargin, minSpacing) {
     const wallPlan = { wall: wallName, images: [] };
 
     for (let i = 0; i < count; i++) {
-      // 左から右：front/right、右から左：left
-      const idx = wallName === 'left' ? imageIndex + (count - 1 - i) : imageIndex + i;
-      const { fw, fh } = imageSizes[idx];
+      // 正面と左面は左から右、右面は左から右でそのまま
+      let idx;
+      if (wallName === 'front' || wallName === 'left') {
+        idx = imageIndex + (count - 1 - i); // 左右逆順で左から並ぶよう調整
+      } else {
+        idx = imageIndex + i;
+      }
 
+      const { fw, fh } = imageSizes[idx];
       wallPlan.images.push({
         index: idx,
         fw,
