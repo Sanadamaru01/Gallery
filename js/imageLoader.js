@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createCaptionPanel } from './captionHelper.js'; // キャプション用
+import { createCaptionPanel } from './captionHelper.js'; // キャプション生成
 
 // メイン関数：画像読み込みと計画適用
 export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixedLongSide = 3, imageBasePath) {
@@ -7,7 +7,7 @@ export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixed
   const MIN_SPACING = 0.5;
   const loader = new THREE.TextureLoader();
 
-  // 画像情報のプリロード（サイズ取得＋テクスチャ化）
+  // 画像情報のプリロード（サイズ取得＋テクスチャ化を並列処理）
   const imageMetaList = await Promise.all(imageFiles.map(srcObj => {
     const src = typeof srcObj === 'string' ? srcObj : srcObj.file;
     return new Promise((resolve) => {
@@ -42,7 +42,7 @@ export async function loadImages(scene, imageFiles, wallWidth, wallHeight, fixed
   return applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wallHeight); // メッシュ配列を返す
 }
 
-// Three.js上に画像とキャプションを貼る
+// Three.js上に画像を貼る
 export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wallHeight) {
   const GALLERY_HEIGHT = wallHeight / 2;
   scene.userData.clickablePanels = scene.userData.clickablePanels || [];
@@ -65,6 +65,7 @@ export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wa
       const fz = wall.axis === 'z' ? wall.origin - img.offset : wall.z;
       const fy = GALLERY_HEIGHT;
 
+      // フレーム
       const frame = new THREE.Mesh(
         new THREE.BoxGeometry(img.fw, img.fh, 0.05),
         new THREE.MeshStandardMaterial({ color: 0x333333 })
@@ -73,6 +74,7 @@ export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wa
       frame.rotation.y = wall.rotY;
       scene.add(frame);
 
+      // 画像パネル
       const panel = new THREE.Mesh(
         new THREE.PlaneGeometry(img.fw * 0.95, img.fh * 0.95),
         new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
@@ -89,7 +91,7 @@ export function applyWallLayouts(scene, layoutPlan, imageMetaList, wallWidth, wa
       panel.userData.size = { width: img.fw, height: img.fh };
       scene.userData.clickablePanels.push(panel);
 
-      // 🔹 キャプションパネル生成（画像のすぐ下に配置）
+      // キャプションパネル生成
       if (meta.title && meta.caption) {
         const aspect = img.fw / img.fh;
         const captionPanel = createCaptionPanel(panel, meta.title, meta.caption, aspect);
@@ -132,7 +134,7 @@ export function planWallLayouts(imageSizes, wallWidth, minMargin, minSpacing) {
     const wallPlan = { wall: wallName, images: [] };
 
     for (let i = 0; i < count; i++) {
-      // 左壁だけ右から表示
+      // 左から右：front/right、右から左：left
       const idx = wallName === 'left' ? imageIndex + (count - 1 - i) : imageIndex + i;
       const { fw, fh } = imageSizes[idx];
 
