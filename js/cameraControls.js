@@ -73,9 +73,17 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
       // --- 距離計算 ---
       const panelHeight = panel.userData.size?.height || 1;
       const fixedLongSide = 3;
+      // --- アスペクト比に応じた距離補正 ---
+      const aspect = window.innerWidth / window.innerHeight;
+      let distanceScale = 1.0;
+      if (aspect < 1.0) {
+        // 縦長画面では少し遠ざける（例: 10〜30%程度）
+        distanceScale = 1.2 - 0.4 * aspect; // aspect=0.5のとき約1.0+0.2=1.2倍遠く
+      }
+      
       const baseDistance = -1.0;
       const safetyMargin = -0.9;
-      const distance = baseDistance * (panelHeight / fixedLongSide) + safetyMargin;
+      const distance = (baseDistance * (panelHeight / fixedLongSide) + safetyMargin) * distanceScale;
 
       // --- カメラ位置算出 ---
       const camPos = panelCenter.clone().addScaledVector(panelNormal, distance);
