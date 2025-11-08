@@ -77,10 +77,10 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
       const aspect = window.innerWidth / window.innerHeight;
       let distanceScale = 1.0;
       if (aspect < 1.0) {
-        // 縦長画面では少し遠ざける（例: 10〜30%程度）
-        distanceScale = 1.2 - 0.4 * aspect; // aspect=0.5のとき約1.0+0.2=1.2倍遠く
+        // 縦長画面ほど遠ざける（例: aspect=0.5 → 約1.4倍遠く）
+        distanceScale = 1.0 + (1.0 - aspect) * 0.8;
       }
-      
+
       const baseDistance = -1.0;
       const safetyMargin = -0.9;
       const distance = (baseDistance * (panelHeight / fixedLongSide) + safetyMargin) * distanceScale;
