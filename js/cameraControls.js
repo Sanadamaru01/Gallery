@@ -80,7 +80,9 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
         // 縦長画面ほど遠ざける（例: aspect=0.5 → 約1.4倍遠く）
         distanceScale = 1.0 + (1.0 - aspect) * 0.4;
       }
-
+// ✅ スマホでも確実に見えるテスト表示
+alert(`aspect=${aspect.toFixed(2)}\ndistanceScale=${distanceScale.toFixed(2)}`);
+      
       const baseDistance = -1.0;
       const safetyMargin = -0.9;
       const distance = (baseDistance * (panelHeight / fixedLongSide) + safetyMargin) * distanceScale;
