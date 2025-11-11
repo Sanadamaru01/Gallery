@@ -81,7 +81,20 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
       const distH = (panelHeight / 2) / Math.tan(fov / 2);
       const distW = (panelWidth / 2) / (Math.tan(fov / 2) * aspect);
       const distance = Math.max(distH, distW) * 1.1; // 1.1倍マージン
-      
+
+      const isPortraitImage = panelHeight > panelWidth;
+
+      if (isPortraitScreen && isPortraitImage) {
+        // 縦画面 × 縦写真 → 少し離す
+        distance *= 1.15;
+      } else if (isPortraitScreen && !isPortraitImage) {
+        // 縦画面 × 横写真 → 少し寄る
+        distance *= 0.85;
+      } else if (!isPortraitScreen && !isPortraitImage) {
+        // 横画面 × 横写真 → 少し離す
+        distance *= 1.1;
+      }
+
       // カメラ位置を算出
       const camPos = panelCenter.clone().addScaledVector(panelNormal, -distance);
       camPos.y = camera.position.y;
