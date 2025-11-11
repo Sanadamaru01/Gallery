@@ -76,7 +76,16 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
       const panelWidth = panel.userData.size?.width || 1;
       const panelHeight = panel.userData.size?.height || 1;
       const fov = THREE.MathUtils.degToRad(camera.fov);
-      const aspect = window.innerWidth / window.innerHeight;
+      
+      // ▼▼ ここから追加修正 ▼▼
+      function getEffectiveAspect() {
+        const header = document.getElementById('titleBar');
+        const headerHeight = header ? header.offsetHeight || 0 : 0;
+        const effectiveHeight = Math.max(window.innerHeight - headerHeight, 1);
+        return window.innerWidth / effectiveHeight;
+      }
+      const aspect = getEffectiveAspect();
+      // ▲▲ ここまで修正（元の "window.innerWidth / window.innerHeight" を置換）▲▲
       
       const distH = (panelHeight / 2) / Math.tan(fov / 2);
       const distW = (panelWidth / 2) / (Math.tan(fov / 2) * aspect);
@@ -96,14 +105,13 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
         // 横画面 × 横写真 → 少し離す
         distance *= 1.1;
       }
-
+      
       // カメラ位置を算出
       const camPos = panelCenter.clone().addScaledVector(panelNormal, -distance);
       camPos.y = camera.position.y;
       
       const lookAt = panelCenter.clone();
       cameraMover.moveCameraTo(lookAt, camPos);
-
       return;
     }
 
