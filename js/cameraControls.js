@@ -80,10 +80,12 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
       
       const distH = (panelHeight / 2) / Math.tan(fov / 2);
       const distW = (panelWidth / 2) / (Math.tan(fov / 2) * aspect);
-      const distance = Math.max(distH, distW) * 1.1; // 1.1倍マージン
-
+      
+      let distance = Math.max(distH, distW) * 1.1; // ← const → let に変更
+      
+      const isPortraitScreen = window.innerHeight > window.innerWidth;
       const isPortraitImage = panelHeight > panelWidth;
-
+      
       if (isPortraitScreen && isPortraitImage) {
         // 縦画面 × 縦写真 → 少し離す
         distance *= 1.15;
