@@ -1,7 +1,7 @@
 {
   "roomTitle": "Room1 Gallery",
-  "startDate": "2025-06-25",
-  "endDate": "2025-10-10",
+  "startDate": "2025-11-25",
+  "endDate": "2026-01-08",
   "wallWidth": 15,
   "wallHeight": 5,
   "fixedLongSide": 3,
@@ -14,14 +14,14 @@
   },
     "images": [
     {
-      "file": "01.jpg",
-      "title": "Title1",
-      "caption": "Caption1"
+      "file": "01Morimoto.jpg",
+      "title": "華",
+      "caption": "森本真次"
     },
     {
-      "file": "02.jpg",
-      "title": "Title2",
-      "caption": "Caption2"
+      "file": "02Yoshida.jpg",
+      "title": "新年の装い",
+      "caption": "吉田久雄"
     },
     {
       "file": "03.jpg",
