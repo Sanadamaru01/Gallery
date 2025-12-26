@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Gallery room Mentenance Tool</title>
+  <style>
+    body { font-family: sans-serif; padding: 1rem; }
+    .file-row { display: flex; align-items: flex-start; margin-bottom: 1rem; gap: 1rem; }
+    .file-row img { width: 100px; height: auto; object-fit: contain; border: 1px solid #ccc; }
+    .file-meta { display: flex; flex-direction: column; gap: 0.5rem; }
+    .progress-bar { width: 100%; background: #eee; height: 12px; border-radius: 6px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0; background: #4caf50; }
+    .small { font-size: 0.8rem; }
+    select, input, button { padding: 0.2rem 0.8rem; font-size: 0.9rem; }
+    label { display: block;  margin-bottom: 8px;}
+  </style>
+</head>
+<body>
+  <h2>Gallery room Mentenance Tool</h2>
+
+  <div>
+    <label>ルーム選択:
+      <select id="roomSelect"></select>
+    </label>
+    <label>ルームタイトル:
+      <input type="text" id="roomTitleInput">
+    </label>
+    <label>情報欄:
+      <input type="text" id="roomAnnouncementInput">
+    </label>
+    <button id="updateRoomBtn">ルーム情報更新</button>
+  </div>
+  
+  <!-- サムネイル専用 -->
+  <div id="thumbnailPreview" style="margin-top:8px;">
+    <img id="thumbnailImg" src="./noimage.jpg" alt="サムネイル" style="width:150px;height:150px;object-fit:cover;background:#f0f0f0;">
+  </div>
+  <button id="uploadThumbnailBtn">サムネイルアップロード</button>
+  <input type="file" id="thumbnailFileInput" accept="image/*" style="display:none;">
+
+  <div>
+    <h3>テクスチャ設定</h3>
+    <label>壁:
+      <select id="wallTexture"></select>
+    </label>
+    <label>床:
+      <select id="floorTexture"></select>
+    </label>
+    <label>天井:
+      <select id="ceilingTexture"></select>
+    </label>
+    <label>扉:
+      <select id="doorTexture"></select>
+    </label>
+    <button id="updateTextureBtn">テクスチャ更新</button>
+  </div>
+
+  <div>
+    <h3>ファイルアップロード</h3>
+    <input type="file" id="fileInput" multiple accept="image/*">
+    <button id="uploadBtn">アップロード</button>
+  </div>
+
+  <div>
+    <h3>アップロード済み・管理</h3>
+    <div id="previewArea"></div>
+  </div>
+
+  <div>
+    <h3>ログ</h3>
+    <pre id="log" style="height:200px; overflow:auto; border:1px solid #ccc; padding:0.5rem;"></pre>
+  </div>
+
+  <script type="module" src="./js/UploadTool/UploadTool.js"></script>
+</body>
+</html>

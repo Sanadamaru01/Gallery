@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Room Control Tool</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    .room-card {
+      display: flex;
+      gap: 16px;
+      border: 1px solid #ccc;
+      padding: 12px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      align-items: center;
+    }
+
+    .room-card.selected {
+      border-color: #0080ff;
+      background: #eef7ff;
+    }
+
+    .thumb {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border: 1px solid #ddd;
+      background: #fafafa;
+    }
+
+    .room-info {
+      flex: 1;
+    }
+
+    .form-block {
+      margin-top: 24px;
+      padding: 16px;
+      border: 1px solid #ccc;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+    }
+
+    input[type="date"],
+    input[type="text"],
+    input[type="number"] {
+      width: 200px;
+    }
+
+    .btn {
+      margin-top: 20px;
+      padding: 8px 16px;
+      display: inline-block;
+      cursor: pointer;
+      background: #0080ff;
+      color: white;
+      border: none;
+    }
+
+    .btn.danger {
+      background: #cc0000;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Room Control Tool</h2>
+
+  <div id="roomList"></div>
+
+  <div id="editArea" class="form-block" style="display:none;">
+    <h3>ルーム設定</h3>
+
+    <label>ルームタイトル：
+      <input type="text" id="roomTitleInput" />
+    </label>
+
+    <label>Start Date：
+      <input type="date" id="startDateInput" />
+    </label>
+
+    <label>Open Date：
+      <input type="date" id="openDateInput" />
+    </label>
+
+    <label>End Date：
+      <input type="date" id="endDateInput" />
+    </label>
+    
+    <label>壁幅（wallWidth）：
+      <input type="number" id="wallWidthInput" step="0.1">
+    </label>
+    <button id="saveRoomBtn" class="btn">設定を保存</button>
+
+    <h3>初期化</h3>
+    <button id="resetRoomBtn" class="btn danger">このルームを初期化</button>
+  </div>
+
+  <script type="module" src="./js/UploadTool/RoomControlTool.js"></script>
+</body>
+</html>
