@@ -23,20 +23,24 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
   const startPos = new THREE.Vector2();
 
   let lastPanel = null;
-  let lastCameraPos = new THREE.Vector3();
-  let lastCameraTarget = new THREE.Vector3();
+  const lastCameraPos = new THREE.Vector3();
+  const lastCameraTarget = new THREE.Vector3();
 
   const cameraMover = createCameraMover(camera, controls);
 
-  // --- ポインターイベント ---
-  renderer.domElement.addEventListener('pointerdown', (event) => {
+  // --- ポインターイベント (windowに登録してより確実にキャッチ) ---
+  window.addEventListener('pointerdown', (event) => {
+    if (event.target !== renderer.domElement) return;
     startPos.set(event.clientX, event.clientY);
   });
 
-  renderer.domElement.addEventListener('pointerup', (event) => {
-    // クリック判定：移動距離が10px以内ならクリックとみなす（指の微細な動きを許容）
+  window.addEventListener('pointerup', (event) => {
+    // クリック判定：移動距離が10px以内ならクリックとみなす
     const moveDistance = Math.hypot(event.clientX - startPos.x, event.clientY - startPos.y);
     if (moveDistance > 10) return;
+
+    // Canvas外でのイベント（他UIなど）は無視
+    if (event.target !== renderer.domElement && !renderer.domElement.contains(event.target)) return;
 
     const rect = renderer.domElement.getBoundingClientRect();
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -148,13 +152,7 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
     }
   });
 
-  window.addEventListener('resize', () => {
-    const titleBar = document.getElementById('titleBar');
-    const headerHeight = titleBar ? titleBar.offsetHeight || 60 : 60;
-    camera.aspect = window.innerWidth / (window.innerHeight - headerHeight);
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight - headerHeight);
-  });
+  // Note: Resize listener is already handled in gallery.js
 
   return {
     controls,
