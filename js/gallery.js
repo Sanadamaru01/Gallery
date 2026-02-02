@@ -147,21 +147,5 @@ export async function initGallery(roomId, imageFiles, config) {
     }
   }
 
-  // --- クリック処理 ---
-  window.addEventListener('click', event => {
-    const rect = renderer.domElement.getBoundingClientRect();
-    const mouse = new THREE.Vector2(
-      ((event.clientX - rect.left) / rect.width) * 2 - 1,
-      -((event.clientY - rect.top) / rect.height) * 2 + 1
-    );
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(scene.userData.clickablePanels || [], true);
-    if (intersects.length > 0) {
-      const clicked = intersects[0].object;
-      clicked.userData?.onClick?.();
-    }
-  });
-
   animate();
 }

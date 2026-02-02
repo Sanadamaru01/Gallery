@@ -45,10 +45,23 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
 
     // --- パネルクリック処理 ---
     const panels = scene.userData.clickablePanels || [];
-    const hits = raycaster.intersectObjects(panels);
+    const hits = raycaster.intersectObjects(panels, true); // 子要素も含めて判定
 
     if (hits.length > 0) {
-      const panel = hits[0].object;
+      const clickedObj = hits[0].object;
+
+      // onClick が設定されている場合は実行 (ドアなど)
+      if (clickedObj.userData?.onClick) {
+        clickedObj.userData.onClick();
+        return;
+      }
+      // 親要素に onClick がある場合（ドアの子要素など）を考慮
+      if (clickedObj.parent?.userData?.onClick) {
+        clickedObj.parent.userData.onClick();
+        return;
+      }
+
+      const panel = clickedObj;
 
       if (lastPanel === panel) {
         // 同じパネル再クリック → 後退
