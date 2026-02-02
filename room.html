@@ -1,24 +1,93 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8" />
   <title>Room Gallery</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    :root { --header-height: 60px; }
-    body { margin: 0; overflow: hidden; font-family: 'Noto Sans JP', sans-serif; background-color: #000; color: #e0e0e0; }
-    #titleBar {
-      position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height);
-      background-color: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
-      color: white; font-weight: bold; font-size: 1.2rem; z-index: 100; user-select: none; padding: 0 16px; box-sizing: border-box;
+    :root {
+      --header-height: 60px;
     }
-    #titleBar a { color: #ccc; text-decoration: none; font-weight: normal; font-size: 1rem; padding: 8px 12px; transition: color 0.3s; user-select: auto; }
-    #titleBar a:hover { color: white; }
-    #prevRoom { position: absolute; left: 16px; }
-    #nextRoom { position: absolute; right: 16px; }
-    #titleText { flex-grow: 1; text-align: center; pointer-events: none; }
-    canvas { position: fixed; top: var(--header-height); left: 0; width: 100% !important; height: calc(100% - var(--header-height)) !important; z-index: 0; display: block; }
-    .message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ccc; font-size: 1.5rem; text-align: center; z-index: 200; }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #000;
+      color: #e0e0e0;
+    }
+
+    #titleBar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: var(--header-height);
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+      z-index: 100;
+      user-select: none;
+      padding: 0 16px;
+      box-sizing: border-box;
+    }
+
+    #titleBar a {
+      color: #ccc;
+      text-decoration: none;
+      font-weight: normal;
+      font-size: 1rem;
+      padding: 8px 12px;
+      transition: color 0.3s;
+      user-select: auto;
+    }
+
+    #titleBar a:hover {
+      color: white;
+    }
+
+    #prevRoom {
+      position: absolute;
+      left: 16px;
+    }
+
+    #nextRoom {
+      position: absolute;
+      right: 16px;
+    }
+
+    #titleText {
+      flex-grow: 1;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    canvas {
+      position: fixed;
+      top: var(--header-height);
+      left: 0;
+      width: 100% !important;
+      height: calc(100% - var(--header-height)) !important;
+      z-index: 0;
+      display: block;
+      touch-action: none;
+    }
+
+    .message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #ccc;
+      font-size: 1.5rem;
+      text-align: center;
+      z-index: 200;
+    }
   </style>
 
   <script type="importmap">
@@ -58,7 +127,7 @@
   ">
     ？
   </button>
-  
+
   <!-- ヘルプオーバーレイ -->
   <div id="helpOverlay" style="
     position: fixed;
@@ -91,7 +160,7 @@
       border-radius: 6px;
     ">✕</button>
   </div>
-  
+
   <script>
     document.getElementById("helpButton").onclick = () => {
       const box = document.getElementById("helpOverlay");
@@ -100,4 +169,5 @@
   </script>
 
 </body>
+
 </html>

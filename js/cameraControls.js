@@ -28,15 +28,15 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
 
   const cameraMover = createCameraMover(camera, controls);
 
-  // --- マウスイベント ---
-  window.addEventListener('mousedown', (event) => {
+  // --- ポインターイベント ---
+  renderer.domElement.addEventListener('pointerdown', (event) => {
     startPos.set(event.clientX, event.clientY);
   });
 
-  window.addEventListener('mouseup', (event) => {
-    // 点击判定：移動距離が5px以内ならクリックとみなす（Safariの微細な振動対策）
+  renderer.domElement.addEventListener('pointerup', (event) => {
+    // クリック判定：移動距離が10px以内ならクリックとみなす（指の微細な動きを許容）
     const moveDistance = Math.hypot(event.clientX - startPos.x, event.clientY - startPos.y);
-    if (moveDistance > 5) return;
+    if (moveDistance > 10) return;
 
     const rect = renderer.domElement.getBoundingClientRect();
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -136,9 +136,11 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
   });
 
   window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
+    const titleBar = document.getElementById('titleBar');
+    const headerHeight = titleBar ? titleBar.offsetHeight || 60 : 60;
+    camera.aspect = window.innerWidth / (window.innerHeight - headerHeight);
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(window.innerWidth, window.innerHeight - headerHeight);
   });
 
   return {
