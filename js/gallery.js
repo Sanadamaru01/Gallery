@@ -18,13 +18,13 @@ export function setOnFirstRender(callback) {
  * @param {Object} config - 部屋設定（wallWidth, wallHeight, fixedLongSide, backgroundColor など）
  */
 export async function initGallery(roomId, imageFiles, config) {
-    // 🔥 画像を Firestore の order で並び替える
+  // 🔥 画像を Firestore の order で並び替える
   imageFiles.sort((a, b) => {
     const ao = a.order ?? Number.MAX_SAFE_INTEGER;
     const bo = b.order ?? Number.MAX_SAFE_INTEGER;
     return ao - bo;
   });
-  
+
   const { wallWidth: WALL_WIDTH, wallHeight: WALL_HEIGHT, fixedLongSide, backgroundColor } = config;
 
   const titleBar = document.getElementById('titleBar');
@@ -107,7 +107,7 @@ export async function initGallery(roomId, imageFiles, config) {
     // 全部空ならキャプションパネルを生成しない
     if (title || caption || author) {
       const aspect = mesh.geometry.parameters.width / mesh.geometry.parameters.height;
-      mesh.userData.captionPanel = createCaptionPanel(mesh, title, author,caption, aspect);
+      mesh.userData.captionPanel = createCaptionPanel(mesh, title, author, caption, aspect);
     }
   });
 
@@ -119,7 +119,7 @@ export async function initGallery(roomId, imageFiles, config) {
   }
   window.addEventListener('resize', () => setTimeout(onWindowResize, 100));
   onWindowResize();
-    
+
   // --- アニメーションループ ---
   function animate() {
     requestAnimationFrame(animate);
@@ -149,9 +149,10 @@ export async function initGallery(roomId, imageFiles, config) {
 
   // --- クリック処理 ---
   window.addEventListener('click', event => {
+    const rect = renderer.domElement.getBoundingClientRect();
     const mouse = new THREE.Vector2(
-      (event.clientX / window.innerWidth) * 2 - 1,
-      -(event.clientY / (window.innerHeight - HEADER_HEIGHT)) * 2 + 1
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1
     );
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, camera);

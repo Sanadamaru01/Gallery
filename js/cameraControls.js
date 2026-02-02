@@ -20,8 +20,7 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
 
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
-  let isClick = false;
-  let clickStartTime = 0;
+  const startPos = new THREE.Vector2();
 
   let lastPanel = null;
   let lastCameraPos = new THREE.Vector3();
@@ -30,20 +29,18 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
   const cameraMover = createCameraMover(camera, controls);
 
   // --- マウスイベント ---
-  window.addEventListener('mousedown', () => {
-    isClick = true;
-    clickStartTime = performance.now();
-  });
-
-  window.addEventListener('mousemove', () => {
-    if (performance.now() - clickStartTime > 200) isClick = false;
+  window.addEventListener('mousedown', (event) => {
+    startPos.set(event.clientX, event.clientY);
   });
 
   window.addEventListener('mouseup', (event) => {
-    if (!isClick) return;
+    // 点击判定：移動距離が5px以内ならクリックとみなす（Safariの微細な振動対策）
+    const moveDistance = Math.hypot(event.clientX - startPos.x, event.clientY - startPos.y);
+    if (moveDistance > 5) return;
 
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
 
     // --- パネルクリック処理 ---
@@ -68,15 +65,15 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
       // --- パネルクリック時の距離計算 ---
       const panelCenter = new THREE.Vector3();
       panel.getWorldPosition(panelCenter);
-      
+
       const panelNormal = new THREE.Vector3(0, 0, -1)
         .applyQuaternion(panel.quaternion)
         .normalize();
-      
+
       const panelWidth = panel.userData.size?.width || 1;
       const panelHeight = panel.userData.size?.height || 1;
       const fov = THREE.MathUtils.degToRad(camera.fov);
-      
+
       // ▼▼ ここから追加修正 ▼▼
       function getEffectiveAspect() {
         const header = document.getElementById('titleBar');
@@ -86,15 +83,15 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
       }
       const aspect = getEffectiveAspect();
       // ▲▲ ここまで修正（元の "window.innerWidth / window.innerHeight" を置換）▲▲
-      
+
       const distH = (panelHeight / 2) / Math.tan(fov / 2);
       const distW = (panelWidth / 2) / (Math.tan(fov / 2) * aspect);
-      
+
       let distance = Math.max(distH, distW) * 1.1; // ← const → let に変更
-      
+
       const isPortraitScreen = window.innerHeight > window.innerWidth;
       const isPortraitImage = panelHeight > panelWidth;
-      
+
       if (isPortraitScreen && isPortraitImage) {
         // 縦画面 × 縦写真 → 少し離す
         distance *= 1.15;
@@ -105,11 +102,11 @@ export function setupCameraControls(camera, renderer, controlsTargetY, floor, sc
         // 横画面 × 横写真 → 少し離す
         distance *= 1.1;
       }
-      
+
       // カメラ位置を算出
       const camPos = panelCenter.clone().addScaledVector(panelNormal, -distance);
       camPos.y = camera.position.y;
-      
+
       const lookAt = panelCenter.clone();
       cameraMover.moveCameraTo(lookAt, camPos);
       return;
